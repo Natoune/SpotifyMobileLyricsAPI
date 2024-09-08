@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message LyricLine {
+    optional int64 startTimeMs = 1;
+    string words = 2;
+}
+
+message Lyrics {
+    optional int32 syncType = 1;
+    repeated LyricLine lines = 2;
+    string provider = 3;
+    string providerLyricsId = 4;
+    string providerDisplayName = 5;
+    string language = 10;
+}
+
+message Colors {
+    int64 background = 1;
+    int64 text = 2;
+    int64 highlightText = 3;
+}
+
+message Root {
+    Lyrics lyrics = 1;
+    Colors colors = 2;
+}
