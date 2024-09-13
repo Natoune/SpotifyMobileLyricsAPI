@@ -114,9 +114,9 @@ const server = https
 			cert:
 				process.env.SSL_CERT ||
 				fs.readFileSync(join(__dirname, "..", "ssl", "cert.pem")),
-			ca:
-				process.env.SSL_CA ||
-				fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
+			ca: process.env.SSL_CA
+				? process.env.SSL_CA
+				: fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
 					? fs.readFileSync(join(__dirname, "..", "ssl", "ca.pem"))
 					: undefined,
 		},
