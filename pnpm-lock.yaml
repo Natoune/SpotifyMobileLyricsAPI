@@ -9,44 +9,44 @@ importers:
   .:
     dependencies:
       dotenv:
-        specifier: ^16.4.5
+        specifier: 16.4.5
         version: 16.4.5
       koa:
-        specifier: ^2.15.3
+        specifier: 2.15.3
         version: 2.15.3
       koa-router:
-        specifier: ^12.0.1
+        specifier: 12.0.1
         version: 12.0.1
       koa-sslify:
-        specifier: ^5.0.1
+        specifier: 5.0.1
         version: 5.0.1
       maxmind:
-        specifier: ^4.3.21
+        specifier: 4.3.21
         version: 4.3.21
       protobufjs:
-        specifier: ^7.4.0
+        specifier: 7.4.0
         version: 7.4.0
     devDependencies:
       '@types/koa':
-        specifier: ^2.15.0
+        specifier: 2.15.0
         version: 2.15.0
       '@types/koa-router':
-        specifier: ^7.4.8
+        specifier: 7.4.8
         version: 7.4.8
       '@types/koa-sslify':
-        specifier: ^4.0.6
+        specifier: 4.0.6
         version: 4.0.6
       copyfiles:
-        specifier: ^2.4.1
+        specifier: 2.4.1
         version: 2.4.1
       nodemon:
-        specifier: ^3.1.4
+        specifier: 3.1.4
         version: 3.1.4
       ts-node:
-        specifier: ^10.9.2
+        specifier: 10.9.2
         version: 10.9.2(@types/node@22.5.3)(typescript@5.5.4)
       typescript:
-        specifier: ^5.5.4
+        specifier: 5.5.4
         version: 5.5.4
 
 packages:
