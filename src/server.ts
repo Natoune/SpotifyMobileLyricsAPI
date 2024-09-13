@@ -43,11 +43,17 @@ const port = Number.parseInt(process.env.PORT || "3000");
 const server = https
 	.createServer(
 		{
-			key: fs.readFileSync(join(__dirname, "..", "ssl", "key.pem")),
-			cert: fs.readFileSync(join(__dirname, "..", "ssl", "cert.pem")),
-			ca: fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
-				? fs.readFileSync(join(__dirname, "..", "ssl", "ca.pem"))
-				: undefined,
+			key:
+				process.env.SSL_KEY ||
+				fs.readFileSync(join(__dirname, "..", "ssl", "key.pem")),
+			cert:
+				process.env.SSL_CERT ||
+				fs.readFileSync(join(__dirname, "..", "ssl", "cert.pem")),
+			ca:
+				process.env.SSL_CA ||
+				fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
+					? fs.readFileSync(join(__dirname, "..", "ssl", "ca.pem"))
+					: undefined,
 		},
 		app.callback(),
 	)
