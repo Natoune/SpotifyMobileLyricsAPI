@@ -1,5 +1,6 @@
 import "dotenv/config";
 import fs from "node:fs";
+import http from "node:http";
 import https from "node:https";
 import { join } from "node:path";
 import zlib from "node:zlib";
@@ -105,25 +106,35 @@ fetch(
 //====== START SERVER ======//
 
 const port = Number.parseInt(process.env.PORT || "3000");
-const server = https
-	.createServer(
-		{
-			key:
-				process.env.SSL_KEY ||
-				fs.readFileSync(join(__dirname, "..", "ssl", "key.pem")),
-			cert:
-				process.env.SSL_CERT ||
-				fs.readFileSync(join(__dirname, "..", "ssl", "cert.pem")),
-			ca: process.env.SSL_CA
-				? process.env.SSL_CA
-				: fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
-					? fs.readFileSync(join(__dirname, "..", "ssl", "ca.pem"))
-					: undefined,
-		},
-		app.callback(),
-	)
-	.listen(port, "0.0.0.0");
+let server: https.Server | http.Server;
+if (
+	(process.env.SSL_KEY && process.env.SSL_CERT) ||
+	(fs.existsSync(join(__dirname, "..", "ssl", "key.pem")) &&
+		fs.existsSync(join(__dirname, "..", "ssl", "cert.pem")))
+) {
+	server = https
+		.createServer(
+			{
+				key:
+					process.env.SSL_KEY ||
+					fs.readFileSync(join(__dirname, "..", "ssl", "key.pem")),
+				cert:
+					process.env.SSL_CERT ||
+					fs.readFileSync(join(__dirname, "..", "ssl", "cert.pem")),
+				ca: process.env.SSL_CA
+					? process.env.SSL_CA
+					: fs.existsSync(join(__dirname, "..", "ssl", "ca.pem"))
+						? fs.readFileSync(join(__dirname, "..", "ssl", "ca.pem"))
+						: undefined,
+			},
+			app.callback(),
+		)
+		.listen(port, "0.0.0.0");
 
-console.info(`Listening to https://0.0.0.0:${port} 🚀`);
+	console.info(`Listening to https://0.0.0.0:${port} 🚀`);
+} else {
+	server = http.createServer(app.callback()).listen(port, "0.0.0.0");
+	console.info(`Listening to http://0.0.0.0:${port} 🚀`);
+}
 
 export default server;
