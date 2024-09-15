@@ -12,6 +12,8 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
       - [Manually patch xManager release (Linux only)](#manually-patch-xmanager-release-linux-only)
   - [Public servers list](#public-servers-list)
   - [Server setup](#server-setup)
+    - [The easy way](#the-easy-way)
+    - [Manual setup](#manual-setup)
   - [Contributors](#contributors)
   - [License](#license)
 
@@ -68,18 +70,26 @@ Script arguments:
 
 ## Server setup
 
-### 1. Clone the repository
+### The easy way
+
+Deploy your server quickly with Vercel.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI)
+
+### Manual setup
+
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Natoune/SpotifyMobileLyricsAPI.git
 cd SpotifyMobileLyricsAPI
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
 
 `npm install` or `yarn install` or `pnpm install`
 
-### 3. Create a `.env` file
+#### 3. Create a `.env` file
 
 1/ Copy the `.env.example` file
 
@@ -98,7 +108,7 @@ PORT=443
 SP_DC=your-spotify-cookie
 ```
 
-### 4. Set up SSL
+#### 4. Set up SSL
 
 1/ Get your SSL certificate
 
@@ -111,17 +121,17 @@ SP_DC=your-spotify-cookie
 - `cert.pem`: The server certificate.
 - `key.pem`: The server private key.
 
-### 5. Set up MaxMind GeoIP2
+#### 5. Set up MaxMind GeoIP2
 
 1/ Download the GeoLite2 Country database from [MaxMind](https://dev.maxmind.com/geoip/geoip2/geolite2/).
 
 2/ Extract the `GeoLite2-Country.mmdb` file to the `db` directory.
 
-### 6. Start the server
+#### 6. Start the server
 
 `npm run serve` or `yarn serve` or `pnpm serve`
 
-### 7. (Optional) Use a process manager to keep the server running
+#### 7. (Optional) Use a process manager to keep the server running
 
 ```bash
 npm install -g pm2
