@@ -9,13 +9,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 	} else if (req.url?.startsWith("/color-lyrics/v2/track/")) {
 		const id = req.url.split("/").pop() || "";
 		response = await routes["/color-lyrics/v2/track/:id"].handler({
-			request: { ...req, ip: req.headers["x-real-ip"] as string },
+			request: {
+				...req,
+				headers: req.headers,
+				ip: req.headers["x-real-ip"] as string,
+			},
 			params: { id },
 			path: req.url,
 		});
 	} else {
 		response = await routes["/*path"].handler({
-			request: { ...req, ip: req.headers["x-real-ip"] as string },
+			request: {
+				...req,
+				headers: req.headers,
+				ip: req.headers["x-real-ip"] as string,
+			},
 			path: req.url || "",
 		});
 	}
