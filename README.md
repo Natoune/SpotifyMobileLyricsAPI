@@ -53,10 +53,12 @@ Script arguments:
 - `-name` the name used to sign the patched APK.
 - `-apk` the path to the xManager-patched Spotify APK. If not provided, the script will download the latest release (user input required).
 
-> [!IMPORTANT]
-> Please host your own instance of the lyrics API if you can. My server is not meant to handle a lot of traffic. If you want to share your server, please open a pull request to add it to the public servers list.
-
 ## Public servers list
+
+> [!TIP]
+> You can deploy a server quickly with Vercel.\
+> Don't forget to share your server with the community!\
+> [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI)
 
 | Server name        | Host                                                                           | Owner                                      |
 | ------------------ | ------------------------------------------------------------------------------ | ------------------------------------------ |
