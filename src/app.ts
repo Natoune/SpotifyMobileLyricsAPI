@@ -75,7 +75,10 @@ export default {
 			let market = "US";
 			if (ctx.request.query.market === "from_token") {
 				const ip = ctx.request.ip;
-				market = await findCountry(ip);
+				market =
+					ctx.request.headers["x-vercel-ip-country"] ||
+					ctx.request.headers["cf-ipcountry"] ||
+					(await findCountry(ip));
 			} else if (ctx.request.query.market) {
 				market = ctx.request.query.market as string;
 			}

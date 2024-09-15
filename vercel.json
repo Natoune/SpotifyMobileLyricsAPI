@@ -1,7 +1,7 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "installCommand": "npm install",
-    "buildCommand": "npm run check_db",
+    "buildCommand": "echo 'No build step needed'",
     "outputDirectory": "api",
     "functions": {
         "api/handler.ts": {

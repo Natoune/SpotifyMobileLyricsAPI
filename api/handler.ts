@@ -1,25 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import fs from "node:fs";
-import { join } from "node:path";
 import routes from "../src/app";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-	//========= CHECKS =========//
-
-	// Check if MaxMind database exists
-	if (!fs.existsSync(join(__dirname, "..", "db", "GeoLite2-Country.mmdb"))) {
-		console.error("MaxMind database not found!");
-		return res.status(500).send("MaxMind database not found!");
-	}
-
-	// Check if Spotify token exists
-	if (!process.env.SP_DC) {
-		console.error("Spotify cookie not found!");
-		return res.status(500).send("Spotify cookie not found!");
-	}
-
-	//======== ROUTES =========//
-
 	let response: HandlerResponse;
 
 	if (req.url === "/") {
