@@ -3,3 +3,4 @@ dist/
 ssl/*.pem
 db/*.mmdb
 .env
+.vercel

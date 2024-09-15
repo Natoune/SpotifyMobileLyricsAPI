@@ -1,4 +1,6 @@
 import "dotenv/config";
+import Koa from "koa";
+import Router from "koa-router";
 import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
@@ -6,7 +8,7 @@ import { join } from "node:path";
 import zlib from "node:zlib";
 import { get } from "simple-get";
 import tarstream from "tar-stream";
-import app from "./app";
+import routes from "./app";
 
 //========= CHECKS =========//
 
@@ -84,36 +86,66 @@ if (!process.env.SP_DC) {
 	process.exit(1);
 }
 
-fetch(
-	"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
-	{
-		headers: {
-			Cookie: `sp_dc=${process.env.SP_DC}`,
+if (!process.env.VERCEL) {
+	fetch(
+		"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+		{
+			headers: {
+				Cookie: `sp_dc=${process.env.SP_DC}`,
+			},
 		},
-	},
-)
-	.then(async (res) => {
-		if (res.status !== 200) {
+	)
+		.then(async (res) => {
+			if (res.status !== 200) {
+				console.error("Invalid Spotify cookie!");
+				process.exit(1);
+			}
+		})
+		.catch(() => {
 			console.error("Invalid Spotify cookie!");
 			process.exit(1);
+		});
+}
+
+//======= KOA SERVER =======//
+
+if (!process.env.VERCEL) {
+	// Routes
+	const app = new Koa();
+	const router = new Router();
+
+	function send(ctx, res) {
+		ctx.status = res.status;
+		ctx.body = res.body;
+		for (const [key, value] of Object.entries(res.headers)) {
+			ctx.set(key, value);
 		}
-	})
-	.catch(() => {
-		console.error("Invalid Spotify cookie!");
-		process.exit(1);
+	}
+
+	router.get("/", async (ctx) => {
+		send(ctx, await routes["/"].handler());
 	});
 
-//====== START SERVER ======//
+	router.get("/color-lyrics/v2/track/:id", async (ctx) => {
+		send(ctx, await routes["/color-lyrics/v2/track/:id"].handler(ctx));
+	});
 
-const port = Number.parseInt(process.env.PORT || "3000");
-let server: https.Server | http.Server;
-if (
-	(process.env.SSL_KEY && process.env.SSL_CERT) ||
-	(fs.existsSync(join(__dirname, "..", "ssl", "key.pem")) &&
-		fs.existsSync(join(__dirname, "..", "ssl", "cert.pem")))
-) {
-	server = https
-		.createServer(
+	router.all("/*path", async (ctx) => {
+		send(ctx, await routes["/*path"].handler(ctx));
+	});
+
+	app.use(router.routes());
+
+	// Server
+	let server: https.Server | http.Server;
+	const port = Number.parseInt(process.env.PORT || "3000");
+	const isHttps =
+		(process.env.SSL_KEY && process.env.SSL_CERT) ||
+		(fs.existsSync(join(__dirname, "..", "ssl", "key.pem")) &&
+			fs.existsSync(join(__dirname, "..", "ssl", "cert.pem")));
+
+	if (isHttps)
+		server = https.createServer(
 			{
 				key:
 					process.env.SSL_KEY ||
@@ -128,13 +160,40 @@ if (
 						: undefined,
 			},
 			app.callback(),
-		)
-		.listen(port, "0.0.0.0");
+		);
+	else server = http.createServer(app.callback());
 
-	console.info(`Listening to https://0.0.0.0:${port} 🚀`);
-} else {
-	server = http.createServer(app.callback()).listen(port, "0.0.0.0");
-	console.info(`Listening to http://0.0.0.0:${port} 🚀`);
+	server.listen(port, "0.0.0.0", () => {
+		console.log(
+			`Server running on ${isHttps ? "https" : "http"}://0.0.0.0:${port} 🚀`,
+		);
+	});
 }
 
-export default server;
+//====== VERCEL SERVER ======//
+
+/*export default async function handler(req: VercelRequest, res: VercelResponse) {
+	let response: HandlerResponse;
+
+	if (req.url === "/") {
+		response = await routes["/"].handler();
+	} else if (req.url?.startsWith("/color-lyrics/v2/track/")) {
+		const id = req.url.split("/").pop() || "";
+		response = await routes["/color-lyrics/v2/track/:id"].handler({
+			request: { ...req, ip: req.headers["x-real-ip"] as string },
+			params: { id },
+			path: req.url,
+		});
+	} else {
+		response = await routes["/*path"].handler({
+			request: { ...req, ip: req.headers["x-real-ip"] as string },
+			path: req.url || "",
+		});
+	}
+
+	for (const [key, value] of Object.entries(response.headers)) {
+		res.setHeader(key, value);
+	}
+	res.status(response.status).send(response.body);
+}
+*/
