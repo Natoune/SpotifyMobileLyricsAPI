@@ -5,10 +5,11 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
-    "build": "tsc && copyfiles db/* dist && copyfiles protos/* dist",
+    "build": "npm run check_db && tsc -p tsconfig.build.json && copyfiles db/* dist && copyfiles protos/* dist",
     "start": "node dist/server.js",
     "pm2": "npm run build && pm2 start npm --name spotify-mobile-lyrics-api -- start",
-    "serve": "npm run build && npm run start"
+    "serve": "npm run build && npm run start",
+    "check_db": "ts-node scripts/check_country_db.ts"
   },
   "author": "Natan Chiodi <contact@natanchiodi.fr>",
   "license": "MIT",

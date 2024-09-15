@@ -1,16 +1,17 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
-    "buildCommand": "npm run build",
-    "builds": [
-        {
-            "src": "dist/server.js",
-            "use": "@vercel/node"
+    "installCommand": "npm install",
+    "buildCommand": "npm run check_db",
+    "outputDirectory": "api",
+    "functions": {
+        "api/handler.ts": {
+            "runtime": "@vercel/node@3.2.14"
         }
-    ],
+    },
     "rewrites": [
         {
             "source": "/(.*)",
-            "destination": "/dist/server.js"
+            "destination": "/api/handler.ts"
         }
     ]
 }
