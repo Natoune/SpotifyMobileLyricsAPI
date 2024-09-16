@@ -11,6 +11,10 @@
     "rewrites": [
         {
             "source": "/(.*)",
+            "destination": "https://spclient.wg.spotify.com/bootstrap/v1/bootstrap"
+        },
+        {
+            "source": "/color-lyrics/v2/track/(.*)",
             "destination": "/api/handler.ts"
         }
     ]

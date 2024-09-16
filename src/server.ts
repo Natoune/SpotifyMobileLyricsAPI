@@ -1,10 +1,14 @@
 import "dotenv/config";
+
+import { bodyParser } from "@koa/bodyparser";
 import Koa from "koa";
 import Router from "koa-router";
 import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
 import { join } from "node:path";
+import getRawBody from "raw-body";
+
 import routes from "./app";
 
 //========= CHECKS =========//
@@ -63,9 +67,11 @@ router.get("/color-lyrics/v2/track/:id", async (ctx) => {
 });
 
 router.all("/*path", async (ctx) => {
-	send(ctx, await routes["/*path"].handler(ctx));
+	const body = await getRawBody(ctx.req);
+	send(ctx, await routes["/*path"].handler(ctx, body));
 });
 
+app.use(bodyParser());
 app.use(router.routes());
 
 // Server

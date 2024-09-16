@@ -1,6 +1,8 @@
-import maxmind, { type CountryResponse, type Reader } from "maxmind";
+import maxmind from "maxmind";
 import { join } from "node:path";
 import protobuf from "protobufjs";
+
+import type { CountryResponse, Reader } from "maxmind";
 
 let maxmindReader: Reader<CountryResponse>;
 let spotifyToken: { token: string; expires: number };
@@ -127,22 +129,30 @@ export default {
 		},
 	},
 	"/*path": {
-		async handler(ctx: HandlerContext): Promise<HandlerResponse> {
-			const response = await fetch(
-				`https://spclient.wg.spotify.com${ctx.path}`,
-				{
-					method: ctx.request.method,
-					headers: Object.entries(ctx.request.headers).map(([key, value]) => [
-						key,
-						value as string,
-					]) as [string, string][],
+		async handler(
+			ctx: HandlerContext,
+			body: HandlerContext["request"]["body"] = ctx.request.body,
+		): Promise<HandlerResponse> {
+			const url = new URL(`https://spclient.wg.spotify.com${ctx.path}`);
+			const response = await fetch(url.href, {
+				method: ctx.request.method,
+				headers: {
+					...Object.fromEntries(
+						Object.entries(ctx.request.headers).map(([key, value]) => [
+							key,
+							Array.isArray(value) ? value.join(", ") : value,
+						]),
+					),
+					host: url.host,
 				},
-			);
+				body,
+			});
 
+			const responseBody = await response.text();
 			return {
 				status: response.status,
 				headers: Object.fromEntries(response.headers.entries()),
-				body: await response.arrayBuffer(),
+				body: responseBody,
 			};
 		},
 	},
