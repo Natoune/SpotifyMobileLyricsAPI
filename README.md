@@ -65,6 +65,7 @@ Script arguments:
 | Server name        | Host                                                                           | Owner                                      |
 | ------------------ | ------------------------------------------------------------------------------ | ------------------------------------------ |
 | Default            | `lyrics.natanchiodi.fr`                                                        | [Natan Chiodi](https://github.com/Natoune) |
+| Team xManager      | `xmanager-lyrics.dev`                                                          | [xC3FFF0E](https://github.com/xC3FFF0E)    |
 | -                  | -                                                                              | -                                          |
 | ➕ Add your server | See [Adding a public server](CONTRIBUTING.md#adding-a-public-server) |                                            |
 
