@@ -46,14 +46,14 @@ The script `patch_xmanager.sh` will automatically download the latest release of
 ```bash
 wget https://raw.githubusercontent.com/Natoune/SpotifyMobileLyricsAPI/main/patch_xmanager.sh
 chmod +x patch_xmanager.sh
-./patch_xmanager.sh -server "lyrics.natanchiodi.fr" -name "Natan Chiodi" -apk "Spotify v8.8.74.652 [xManager] (Merged).apk"
+./patch_xmanager.sh --server "lyrics.natanchiodi.fr" --name "Natan Chiodi" --apk "Spotify v8.8.74.652 [xManager] (Merged).apk"
 ```
 
 Script arguments:
 
-- `-server` the lyrics API host (see [Public servers list](#public-servers-list)).
-- `-name` the name used to sign the patched APK.
-- `-apk` the path to the xManager-patched Spotify APK. If not provided, the script will download the latest release (user input required).
+- `--server` the lyrics API host (see [Public servers list](#public-servers-list)).
+- `--name` the name used to sign the patched APK.
+- `--apk` the path to the xManager-patched Spotify APK. If not provided, the script will download the latest release (user input required).
 
 ## Public servers list
 

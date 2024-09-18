@@ -3,12 +3,22 @@
 set +x
 
 #### Fetch Arguments ####
-while getopts server:name:apk: flag; do
-    case "${flag}" in
-    server) server=${OPTARG} ;;
-    name) name=${OPTARG} ;;
-    apk) apk=${OPTARG} ;;
+while [ "$1" != "" ]; do
+    case $1 in
+    --server)
+        shift
+        server=$1
+        ;;
+    --name)
+        shift
+        name=$1
+        ;;
+    --apk)
+        shift
+        apk=$1
+        ;;
     esac
+    shift
 done
 
 if [ -z "$server" ]; then
@@ -101,7 +111,7 @@ if [ -z "$apk" ]; then
     if [[ $mirror == *"fileport"* ]]; then
         wget $mirror -q -O $alt.apk
     else
-        echo "An error occurred while downloading the APK. Please download it manually and use the -apk flag."
+        echo "An error occurred while downloading the APK. Please download it manually and use the --apk flag."
         echo "Download link: $mirror"
         exit
     fi
@@ -115,14 +125,19 @@ if [ -z "$apk" ]; then
     rm xManager.apk &>/dev/null
     rm versions.json &>/dev/null
     rm $alt.html &>/dev/null
+else
+    cd ..
+    cp "$apk" tmp/input.apk
+    cd tmp
+    apk="input.apk"
 fi
 
 #### Patch Spotify ####
 echo "Patching Spotify..."
 java -jar apktool.jar d $apk &>/dev/null
-folder=$(basename $apk .apk)
+folder=$(basename "$apk" .apk)
 
-smali_file=$(find $folder -name "RetrofitUtil.smali")
+smali_file=$(find "$folder" -name "RetrofitUtil.smali")
 if [ -z "$smali_file" ]; then
     echo "An error occurred while patching Spotify. Please try again."
     exit
@@ -133,7 +148,7 @@ sed -i "s/const-string\/jumbo v1, \"spclient.wg.spotify.com\"/const-string\/jumb
 #### Build Patched APK ####
 echo "Building patched APK..."
 java -jar apktool.jar b $folder &>/dev/null
-mv $folder/dist/$apk patched.apk &>/dev/null
+mv "$folder/dist/$apk" patched.apk &>/dev/null
 
 ./build-tools/zipalign -p -f 4 patched.apk aligned.apk &>/dev/null
 
