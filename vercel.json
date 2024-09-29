@@ -4,18 +4,18 @@
     "buildCommand": "echo 'No build step needed'",
     "outputDirectory": "api",
     "functions": {
-        "api/handler.ts": {
+        "api/**/*.ts": {
             "runtime": "@vercel/node@3.2.14"
         }
     },
     "rewrites": [
         {
             "source": "/color-lyrics/v2/track/(.*)",
-            "destination": "/api/handler.ts"
+            "destination": "/api/lyrics.ts"
         },
         {
             "source": "/(.*)",
-            "destination": "https://spclient.wg.spotify.com/bootstrap/v1/bootstrap"
+            "destination": "https://spclient.wg.spotify.com/$1"
         }
     ]
 }
