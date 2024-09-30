@@ -61,13 +61,13 @@ if ! command -v openssl &>/dev/null; then
 fi
 
 #### Create Temporary Directory ####
-rm -rf $PWD/tmp &>/dev/null
-mkdir $PWD/tmp &>/dev/null
-cd $PWD/tmp
+rm -rf $PWD/tmp-patch_xmanager &>/dev/null
+mkdir $PWD/tmp-patch_xmanager &>/dev/null
+cd $PWD/tmp-patch_xmanager
 
 #### Download Required Tools ####
 echo "Downloading required tools..."
-wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar -q -O apktool.jar
+wget https://github.com/REAndroid/APKEditor/releases/download/V1.4.0/APKEditor-1.4.0.jar -q -O APKEditor.jar
 
 wget https://dl.google.com/android/repository/build-tools_r34-rc3-linux.zip -q -O build-tools.zip
 unzip build-tools.zip &>/dev/null
@@ -79,8 +79,8 @@ if [ -z "$apk" ]; then
     echo "No APK provided. Fetching latest patched Spotify release..."
 
     wget https://github.com/Team-xManager/xManager/releases/latest/download/xManager.apk -q -O xManager.apk
-    java -jar apktool.jar d xManager.apk &>/dev/null
-    url=$(grep -o 'https://gist.githubusercontent.com/[^<]*' xManager/res/values/strings.xml)
+    java -jar APKEditor.jar d -i xManager.apk -o xManager &>/dev/null
+    url=$(grep -o 'https://gist.githubusercontent.com/[^<]*' xManager/resources/package_1/res/values/strings.xml)
     alt="Stock_Patched"
 
     while true; do
@@ -106,7 +106,7 @@ if [ -z "$apk" ]; then
     done
 
     wget $url -q -O versions.json
-    mirror=$(jq -r ".$alt[0].Mirror" versions.json)
+    mirror=$(jq -r ".$alt[-1].Mirror" versions.json)
 
     if [[ $mirror == *"fileport"* ]]; then
         wget $mirror -q -O $alt.apk
@@ -127,39 +127,57 @@ if [ -z "$apk" ]; then
     rm $alt.html &>/dev/null
 else
     cd ..
-    cp "$apk" tmp/input.apk
-    cd tmp
+    cp "$apk" tmp-patch_xmanager/input.apk
+    cd tmp-patch_xmanager
     apk="input.apk"
 fi
 
 #### Patch Spotify ####
 echo "Patching Spotify..."
-java -jar apktool.jar d $apk &>/dev/null
 folder=$(basename "$apk" .apk)
+java -jar APKEditor.jar d -i $apk -o $folder &>/dev/null
 
-smali_file=$(find "$folder" -name "RetrofitUtil.smali")
-if [ -z "$smali_file" ]; then
-    echo "An error occurred while patching Spotify. Please try again."
-    exit
+## Change Server
+manifest_file=$(find "$folder" -name "AndroidManifest.xml")
+package=$(grep -oP 'package="[^"]*' $manifest_file | cut -d '"' -f 2)
+
+if [ "$package" == "com.spotify.lite" ]; then
+    # Lite
+    smali_file=$(find "$folder" -name "mk3.smali")
+    sed -i "s/const-string v2, \"https:\/\/xmanager-lyrics.dev\/\"/const-string v2, \"https:\/\/$server\/\"/g" $smali_file &>/dev/null
+    sed -i "s/const-string v2, \"https:\/\/spclient.wg.spotify.com\/\"/const-string v2, \"https:\/\/$server\/\"/g" $smali_file &>/dev/null
+else
+    # Stock / Amoled
+    smali_file=$(find "$folder" -name "RetrofitUtil.smali")
+    sed -i "s/const-string\/jumbo v1, \"xmanager-lyrics.dev\"/const-string\/jumbo v1, \"$server\"/g" $smali_file &>/dev/null
+    sed -i "s/const-string\/jumbo v1, \"spclient.wg.spotify.com\"/const-string\/jumbo v1, \"$server\"/g" $smali_file &>/dev/null
 fi
 
-sed -i "s/const-string\/jumbo v1, \"spclient.wg.spotify.com\"/const-string\/jumbo v1, \"$server\"/g" $smali_file &>/dev/null
+## SSL Pinning Bypass
+network_security_file=$(find "$folder" -name "network_security_config.xml")
+if [ -f "$network_security_file" ]; then
+    sed -i 's/<base-config cleartextTrafficPermitted="true" \/>/<base-config cleartextTrafficPermitted="true">\n    <trust-anchors>\n        <certificates src="system" \/>\n        <certificates src="user" overridePins="true" \/>\n    <\/trust-anchors>\n  <\/base-config>/g' $network_security_file &>/dev/null
+fi
 
 #### Build Patched APK ####
 echo "Building patched APK..."
-java -jar apktool.jar b $folder &>/dev/null
-mv "$folder/dist/$apk" patched.apk &>/dev/null
+java -jar APKEditor.jar b -i $folder -o patched.apk &>/dev/null
 
 ./build-tools/zipalign -p -f 4 patched.apk aligned.apk &>/dev/null
+
+if [ ! -f "aligned.apk" ]; then
+    echo "An error occurred while building the patched APK."
+    exit
+fi
 
 #### Sign APK ####
 echo "Signing APK..."
 password=$(openssl rand -base64 32)
 keytool -genkey -v -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias "$name" -storepass $password -keypass $password -dname "CN=$name" &>/dev/null
-./build-tools/apksigner sign --ks keystore.jks --ks-pass pass:$password --ks-key-alias "$name" --key-pass pass:$password --out ../Spotify.apk aligned.apk &>/dev/null
+./build-tools/apksigner sign --ks keystore.jks --ks-pass pass:$password --ks-key-alias "$name" --key-pass pass:$password --out ../$apk aligned.apk &>/dev/null
 
 #### Cleanup ####
 cd ..
-rm -rf ./tmp &>/dev/null
+rm -rf ./tmp-patch_xmanager &>/dev/null
 
-echo "Patched APK saved as Spotify.apk"
+echo "Patched APK saved as $apk"

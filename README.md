@@ -33,6 +33,10 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
 
 ### Patch xManager
 
+> [!NOTE]  
+> The latest versions of xManager already have the lyrics patch applied.  
+> If you have an older version or want to use a different server, you can patch it manually.
+
 #### Download the pre-patched releases
 
 Go to the [releases](https://github.com/Natoune/SpotifyMobileLyricsAPI/releases) page and download the latest release of Spotify patched with xManager and the Spotify Mobile Lyrics API.
