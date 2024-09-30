@@ -5,6 +5,7 @@
   "author": "Natan Chiodi <contact@natanchiodi.fr>",
   "license": "MIT",
   "dependencies": {
+    "@vercel/kv": "^3.0.0",
     "@vercel/node": "^3.2.17",
     "protobufjs": "7.4.0"
   },

@@ -1,3 +1,4 @@
+import { kv } from "@vercel/kv";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { join } from "node:path";
 import protobuf from "protobufjs";
@@ -15,7 +16,14 @@ async function getProto(name: string): Promise<protobuf.Root> {
 }
 
 async function getSpotifyToken() {
-	const { accessToken } = await fetch(
+	if (process.env.KV_URL) {
+		try {
+			const kv_token = await kv.get("access_token");
+			if (kv_token) return kv_token;
+		} catch {}
+	}
+
+	const { accessToken, accessTokenExpirationTimestampMs } = await fetch(
 		"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
 		{
 			headers: {
@@ -23,6 +31,14 @@ async function getSpotifyToken() {
 			},
 		},
 	).then((res) => res.json());
+
+	if (process.env.KV_URL) {
+		try {
+			await kv.set("access_token", accessToken, {
+				pxat: accessTokenExpirationTimestampMs,
+			});
+		} catch {}
+	}
 
 	return accessToken;
 }
