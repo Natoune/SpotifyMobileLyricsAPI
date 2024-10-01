@@ -1,7 +1,9 @@
-import { kv } from "@vercel/kv";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { join } from "node:path";
 import protobuf from "protobufjs";
+import { createClient } from "redis";
+
+let redisClient: ReturnType<typeof createClient>;
 
 async function getProto(name: string): Promise<protobuf.Root> {
 	return await new Promise((resolve, reject) => {
@@ -16,10 +18,17 @@ async function getProto(name: string): Promise<protobuf.Root> {
 }
 
 async function getSpotifyToken() {
-	if (process.env.KV_URL) {
+	if (process.env.REDIS_URL) {
 		try {
-			const kv_token = await kv.get("access_token");
-			if (kv_token) return kv_token;
+			if (!redisClient) {
+				redisClient = createClient({
+					url: process.env.REDIS_URL,
+				});
+				await redisClient.connect();
+			}
+
+			const accessToken = await redisClient.get("sp_access_token");
+			if (accessToken) return accessToken;
 		} catch {}
 	}
 
@@ -32,10 +41,10 @@ async function getSpotifyToken() {
 		},
 	).then((res) => res.json());
 
-	if (process.env.KV_URL) {
+	if (redisClient) {
 		try {
-			await kv.set("access_token", accessToken, {
-				pxat: accessTokenExpirationTimestampMs,
+			await redisClient.set("sp_access_token", accessToken, {
+				PXAT: accessTokenExpirationTimestampMs,
 			});
 		} catch {}
 	}
