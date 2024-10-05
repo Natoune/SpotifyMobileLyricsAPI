@@ -11,6 +11,9 @@ importers:
       '@vercel/node':
         specifier: ^3.2.17
         version: 3.2.17
+      languagedetect:
+        specifier: ^2.0.0
+        version: 2.0.0
       protobufjs:
         specifier: 7.4.0
         version: 7.4.0
@@ -521,6 +524,10 @@ packages:
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
+
+  languagedetect@2.0.0:
+    resolution: {integrity: sha512-AZb/liiQ+6ZoTj4f1J0aE6OkzhCo8fyH+tuSaPfSo8YHCWLFJrdSixhtO2TYdIkjcDQNaR4RmGaV2A5FJklDMQ==}
+    engines: {node: '>= 0.4.8'}
 
   long@5.2.3:
     resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
@@ -1236,6 +1243,8 @@ snapshots:
       ts-toolbelt: 6.15.5
 
   json-schema-traverse@1.0.0: {}
+
+  languagedetect@2.0.0: {}
 
   long@5.2.3: {}
 
