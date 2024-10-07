@@ -319,34 +319,6 @@ async function fetchLyrics(track_id: string, market: string) {
 	return null;
 }
 
-async function noLyrics() {
-	const proto = await getProto("lyrics");
-	const RootMessage = proto.lookupType("Root");
-
-	const lyrics_obj = {
-		lyrics: {
-			syncType: 0,
-			lines: [],
-			provider: "",
-			providerLyricsId: "",
-			providerDisplayName: "",
-		},
-		colors: {
-			background: -9079435,
-			text: -16777216,
-			highlightText: -1,
-		},
-	};
-
-	const errMsg = RootMessage.verify(lyrics_obj);
-	if (errMsg) return null;
-
-	const message = RootMessage.create(lyrics_obj);
-	const buffer = RootMessage.encode(message).finish();
-
-	return buffer;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 	if (!req.url) return res.status(400).end();
 
