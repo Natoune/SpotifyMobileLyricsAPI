@@ -15,6 +15,17 @@
         },
         {
             "source": "/(.*)",
+            "destination": "/api/proxy.ts",
+            "missing": [
+                {
+                    "type": "header",
+                    "key": "content-type",
+                    "value": "application/x-protobuf"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)",
             "destination": "https://spclient.wg.spotify.com/$1"
         }
     ]

@@ -4,9 +4,8 @@ import crypto from "node:crypto";
 import { join } from "node:path";
 import querystring from "node:querystring";
 import protobuf from "protobufjs";
-import { createClient } from "redis";
+import { getSpotifyToken } from "../utils";
 
-let redisClient: ReturnType<typeof createClient>;
 const langDetector = new LanguageDetect();
 langDetector.setLanguageType("iso2");
 
@@ -20,41 +19,6 @@ async function getProto(name: string): Promise<protobuf.Root> {
 			},
 		);
 	});
-}
-
-async function getSpotifyToken() {
-	if (process.env.REDIS_URL) {
-		try {
-			if (!redisClient) {
-				redisClient = createClient({
-					url: process.env.REDIS_URL,
-				});
-				await redisClient.connect();
-			}
-
-			const accessToken = await redisClient.get("sp_access_token");
-			if (accessToken) return accessToken;
-		} catch {}
-	}
-
-	const { accessToken, accessTokenExpirationTimestampMs } = await fetch(
-		"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
-		{
-			headers: {
-				Cookie: `sp_dc=${process.env.SP_DC}`,
-			},
-		},
-	).then((res) => res.json());
-
-	if (redisClient) {
-		try {
-			await redisClient.set("sp_access_token", accessToken, {
-				PXAT: accessTokenExpirationTimestampMs,
-			});
-		} catch {}
-	}
-
-	return accessToken;
 }
 
 async function getTrackInfo(track_id: string) {
