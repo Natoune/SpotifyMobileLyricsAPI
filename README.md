@@ -1,5 +1,10 @@
 # Spotify Mobile Lyrics API
 
+> [!WARNING]  
+> The server is receiving a lot of traffic, so Vercel has rate-limited the API.  
+> I am working on a solution to allow hosting the API on a dedicated server.  
+> Please be patient, and thank you for your understanding.
+
 This API overrides the Spotify API endpoint used in the Spotify mobile app to fetch lyrics for the currently playing song.
 
 You can use this API in xManager to fetch lyrics without having a Spotify Premium account.
