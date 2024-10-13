@@ -21,7 +21,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           preCommands: pnpm build
-          command: wrangler deploy adapter/cloudflare.ts
+          command: wrangler deploy adapter/cloudflare.ts --name spotify-mobile-lyrics-api
           packageManager: pnpm
           secrets: |
             SP_DC
