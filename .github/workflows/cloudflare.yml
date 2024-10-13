@@ -15,8 +15,15 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9
+          run_install: true
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          preCommands: pnpm build
+          command: wrangler deploy adapter/cloudflare.ts
           packageManager: pnpm
+          secrets: |
+            SP_DC
+        env:
+          SP_DC: ${{ secrets.SP_DC }}
