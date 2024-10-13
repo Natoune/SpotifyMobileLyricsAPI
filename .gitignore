@@ -1,4 +1,11 @@
 node_modules/
+certs/*
+!certs/.gitkeep
+dist/
 .env
+.dev.vars
 .vercel
+.wrangler
+wrangler.toml
+token
 tmp-*

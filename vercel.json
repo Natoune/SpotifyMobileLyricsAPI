@@ -1,32 +1,17 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "installCommand": "pnpm install",
-    "buildCommand": "echo 'No build step needed'",
+    "buildCommand": "pnpm run build",
     "outputDirectory": "api",
     "functions": {
-        "api/**/*.ts": {
+        "api/vercel.ts": {
             "runtime": "@vercel/node@3.2.14"
         }
     },
     "rewrites": [
         {
-            "source": "/color-lyrics/v2/track/(.*)",
-            "destination": "/api/lyrics.ts"
-        },
-        {
             "source": "/(.*)",
-            "destination": "/api/proxy.ts",
-            "missing": [
-                {
-                    "type": "header",
-                    "key": "content-type",
-                    "value": "application/x-protobuf"
-                }
-            ]
-        },
-        {
-            "source": "/(.*)",
-            "destination": "https://spclient.wg.spotify.com/$1"
+            "destination": "/api/vercel.ts"
         }
     ]
 }

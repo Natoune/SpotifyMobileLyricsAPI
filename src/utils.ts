@@ -1,24 +1,112 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import * as protobuf from "@bufbuild/protobuf";
+import CryptoJS from "crypto-js";
 import LanguageDetect from "languagedetect";
-import crypto from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import querystring from "node:querystring";
-import protobuf from "protobufjs";
-import { getSpotifyToken } from "../utils";
+import { createClient } from "redis";
+import { RootSchema } from "./gen/lyrics_pb";
+
+let redisClient: ReturnType<typeof createClient>;
 
 const langDetector = new LanguageDetect();
 langDetector.setLanguageType("iso2");
 
-async function getProto(name: string): Promise<protobuf.Root> {
-	return await new Promise((resolve, reject) => {
-		protobuf.load(
-			join(__dirname, "..", "protos", `${name}.proto`),
-			(err, root) => {
-				if (err || !root) reject(err);
-				else resolve(root);
+let env: Record<string, any>;
+
+let spotifyToken: {
+	accessToken: string;
+	accessTokenExpirationTimestampMs: number;
+	[key: string]: any;
+};
+
+const ua =
+	"Spotify Mobile Lyrics API (https://github.com/Natoune/SpotifyMobileLyricsAPI)";
+
+export async function getSpotifyToken(
+	setEnv?: Record<string, any>,
+): Promise<string | null> {
+	if (setEnv) env = setEnv;
+
+	if (
+		spotifyToken?.accessToken &&
+		spotifyToken?.accessTokenExpirationTimestampMs > Date.now()
+	)
+		return spotifyToken.accessToken;
+
+	if (env.sp_redis) {
+		try {
+			const accessToken = await env.sp_redis.get("sp_access_token");
+			if (
+				accessToken &&
+				Number.parseInt(accessToken.split(":")[1]) > Date.now()
+			)
+				return accessToken.split(":")[0];
+		} catch {}
+	} else if (env.REDIS_URL) {
+		try {
+			if (!redisClient) {
+				redisClient = createClient({
+					url: env.REDIS_URL,
+				});
+				await redisClient.connect();
+			}
+
+			const accessToken = await redisClient.get("sp_access_token");
+			if (accessToken) return accessToken;
+		} catch {}
+	} else {
+		try {
+			if (existsSync(join(__dirname, "..", "token"))) {
+				const { accessToken, accessTokenExpirationTimestampMs } = JSON.parse(
+					Buffer.from(
+						readFileSync(join(__dirname, "..", "token"), "utf-8"),
+						"hex",
+					).toString(),
+				);
+
+				if (accessTokenExpirationTimestampMs > Date.now()) return accessToken;
+			}
+		} catch {}
+	}
+
+	spotifyToken = await fetch(
+		"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
+		{
+			headers: {
+				"User-Agent": ua,
+				Cookie: `sp_dc=${env.SP_DC}`,
 			},
+		},
+	)
+		.then((res) => res.json())
+		.catch(() => null);
+
+	if (!spotifyToken) return null;
+
+	if (env.sp_redis) {
+		try {
+			await env.sp_redis.put(
+				"sp_access_token",
+				`${spotifyToken.accessToken}:${spotifyToken.accessTokenExpirationTimestampMs}`,
+			);
+		} catch {}
+	} else if (redisClient) {
+		try {
+			await redisClient.set("sp_access_token", spotifyToken.accessToken, {
+				PXAT: spotifyToken.accessTokenExpirationTimestampMs,
+			});
+		} catch {}
+	}
+
+	try {
+		writeFileSync(
+			join(__dirname, "..", "token"),
+			Buffer.from(JSON.stringify(spotifyToken), "utf-8").toString("hex"),
 		);
-	});
+	} catch {}
+
+	return spotifyToken.accessToken;
 }
 
 async function getTrackInfo(track_id: string) {
@@ -45,6 +133,7 @@ async function getSpotifyLyrics(id: string, market: string) {
 		{
 			headers: {
 				"app-platform": "WebPlayer",
+				"User-Agent": ua,
 				Authorization: `Bearer ${await getSpotifyToken()}`,
 			},
 		},
@@ -66,16 +155,10 @@ async function getSpotifyLyrics(id: string, market: string) {
 	if (!lyrics || !lyrics.lyrics?.lines || !lyrics.lyrics?.lines.length)
 		return null;
 
-	const proto = await getProto("lyrics");
-	const RootMessage = proto.lookupType("Root");
+	const proto = protobuf.create(RootSchema, lyrics);
+	const bytes = protobuf.toBinary(RootSchema, proto);
 
-	const errMsg = RootMessage.verify(lyrics);
-	if (errMsg) return null;
-
-	const message = RootMessage.create(lyrics);
-	const buffer = RootMessage.encode(message).finish();
-
-	return buffer;
+	return bytes;
 }
 
 async function fetchNetease(body) {
@@ -84,9 +167,15 @@ async function fetchNetease(body) {
 	const SECRET = "7246674226682325323F5E6544673A51";
 	const password = Buffer.from(SECRET, "hex").toString("utf8");
 
-	const cipher = crypto.createCipheriv("aes-128-ecb", password, "");
-	const hex =
-		cipher.update(JSON.stringify(body), "utf8", "hex") + cipher.final("hex");
+	const hex = CryptoJS.AES.encrypt(
+		JSON.stringify(body),
+		CryptoJS.enc.Utf8.parse(password),
+		{
+			mode: CryptoJS.mode.ECB,
+			padding: CryptoJS.pad.Pkcs7,
+			format: CryptoJS.format.Hex,
+		},
+	).toString();
 
 	const form = querystring.stringify({
 		eparams: hex.toUpperCase(),
@@ -124,9 +213,7 @@ async function getNeteaseLyrics(track_id: string) {
 		url: "https://music.163.com/api/cloudsearch/pc",
 	})
 		.then((data) => data.result?.songs?.[0]?.id)
-		.catch((e) => {
-			null;
-		});
+		.catch(() => null);
 
 	if (!id) return null;
 
@@ -141,13 +228,12 @@ async function getNeteaseLyrics(track_id: string) {
 	if (!lyrics) return null;
 
 	let lines: string[] = lyrics.split("\n");
+	let i = 0;
 	lines = lines.filter((line) => line.trim() !== "");
 	lines = lines.filter((line) => {
-		if (
-			(line.slice(4, 6) === "00" || line.slice(4, 6) === "01") &&
-			line.slice(7, 9) === "00"
-		)
-			return false;
+		if (line.includes("作词 :") || line.includes("作曲 :")) return false;
+		if (line.split("]")[1].trim() === "" && i === 0) return;
+		i++;
 		return true;
 	});
 	const synced_lines = lines.filter((line) =>
@@ -155,9 +241,6 @@ async function getNeteaseLyrics(track_id: string) {
 	);
 
 	if (!lines.length) return null;
-
-	const proto = await getProto("lyrics");
-	const RootMessage = proto.lookupType("Root");
 
 	const lyrics_obj = {
 		lyrics: {
@@ -190,13 +273,11 @@ async function getNeteaseLyrics(track_id: string) {
 		},
 	};
 
-	const errMsg = RootMessage.verify(lyrics_obj);
-	if (errMsg) return null;
+	// @ts-ignore
+	const proto = protobuf.create(RootSchema, lyrics_obj);
+	const bytes = protobuf.toBinary(RootSchema, proto);
 
-	const message = RootMessage.create(lyrics_obj);
-	const buffer = RootMessage.encode(message).finish();
-
-	return buffer;
+	return bytes;
 }
 
 async function getLRCLibLyrics(track_id: string) {
@@ -226,9 +307,6 @@ async function getLRCLibLyrics(track_id: string) {
 				.filter((line) => /^\[\d{2}:\d{2}\.\d{2,3}\]/.test(line))
 		: null;
 
-	const proto = await getProto("lyrics");
-	const RootMessage = proto.lookupType("Root");
-
 	const lyrics_obj = {
 		lyrics: {
 			syncType: synced_lines ? 1 : undefined,
@@ -251,6 +329,7 @@ async function getLRCLibLyrics(track_id: string) {
 			provider: "lrclib",
 			providerLyricsId: `${lyrics.id}`,
 			providerDisplayName: "LRCLIB",
+			language: langDetector.detect(lines.join("\n"))[0][0],
 		},
 		colors: {
 			background: -9079435,
@@ -259,16 +338,20 @@ async function getLRCLibLyrics(track_id: string) {
 		},
 	};
 
-	const errMsg = RootMessage.verify(lyrics_obj);
-	if (errMsg) return null;
+	// @ts-ignore
+	const proto = protobuf.create(RootSchema, lyrics_obj);
+	const bytes = protobuf.toBinary(RootSchema, proto);
 
-	const message = RootMessage.create(lyrics_obj);
-	const buffer = RootMessage.encode(message).finish();
-
-	return buffer;
+	return bytes;
 }
 
-async function fetchLyrics(track_id: string, market: string) {
+export async function fetchLyrics(
+	track_id: string,
+	market: string,
+	setEnv: Record<string, any>,
+) {
+	env = setEnv;
+
 	const lyricsFetchers = [
 		() => getSpotifyLyrics(track_id, market),
 		() => getNeteaseLyrics(track_id),
@@ -276,28 +359,9 @@ async function fetchLyrics(track_id: string, market: string) {
 	];
 
 	for (const fetcher of lyricsFetchers) {
-		const buffer = await fetcher();
-		if (buffer) return buffer;
+		const bytes = await fetcher();
+		if (bytes && bytes.length > 0) return bytes;
 	}
 
 	return null;
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-	if (!req.url) return res.status(400).end();
-
-	const track_id = req.url.split("/").pop()?.split("?")[0] as string;
-
-	let market = "US";
-	if (req.query.market === "from_token") {
-		market = req.headers["x-vercel-ip-country"] as string;
-	} else if (typeof req.query.market === "string") {
-		market = req.query.market as string;
-	}
-
-	const lyrics_buffer = await fetchLyrics(track_id, market);
-	if (!lyrics_buffer) return res.status(404).end();
-
-	res.setHeader("Content-Type", "application/protobuf");
-	res.status(200).send(lyrics_buffer);
 }
