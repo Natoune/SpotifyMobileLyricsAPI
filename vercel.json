@@ -10,6 +10,10 @@
     },
     "rewrites": [
         {
+            "source": "/bootstrap/v1/bootstrap",
+            "destination": "https://spclient.wg.spotify.com/bootstrap/v1/bootstrap"
+        },
+        {
             "source": "/(.*)",
             "destination": "/api/vercel.ts"
         }

@@ -44,7 +44,7 @@ const proxyRequest = defineEventHandler(async (event) => {
 			`https://spclient.wg.spotify.com${event.path}`,
 			options,
 		);
-		const body = await res.text();
+		const body = Buffer.from(await res.arrayBuffer());
 		const responseHeaders = new Headers();
 
 		for (const [key, value] of res.headers.entries()) {
@@ -56,9 +56,10 @@ const proxyRequest = defineEventHandler(async (event) => {
 		if (!responseHeaders.has("content-type")) {
 			const acceptHeader = event.headers.get("accept");
 			const contentTypeHeader = res.headers.get("content-type");
-			const contentType = acceptHeader
-				? acceptHeader.split(",")[0]
-				: contentTypeHeader || "application/json";
+			const contentType =
+				acceptHeader && acceptHeader.split(",")[0] !== "*/*"
+					? acceptHeader.split(",")[0]
+					: contentTypeHeader || "application/json";
 			responseHeaders.set("content-type", contentType);
 		}
 
