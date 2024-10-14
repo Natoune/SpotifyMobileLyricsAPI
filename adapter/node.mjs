@@ -7,10 +7,14 @@ import { app } from "../dist/app.js";
 
 const listener = toNodeListener(app);
 
-if (fs.existsSync("certs/private.key") && fs.existsSync("certs/cert.pem")) {
+if (
+	(process.env.SSL_KEY && process.env.SSL_CERT) ||
+	fs.existsSync("certs/private.key") ||
+	fs.existsSync("certs/cert.pem")
+) {
 	const options = {
-		key: fs.readFileSync("certs/private.key"),
-		cert: fs.readFileSync("certs/cert.pem"),
+		key: process.env.SSL_KEY || fs.readFileSync("certs/private.key"),
+		cert: process.env.SSL_CERT || fs.readFileSync("certs/cert.pem"),
 	};
 	const server = httpsServer(options, listener);
 	server.listen(process.env.PORT || 443);

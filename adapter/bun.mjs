@@ -1,18 +1,20 @@
+import "dotenv/config";
 import { toWebHandler } from "h3";
 import { app } from "../dist/app.js";
 
 const handler = toWebHandler(app);
 
 if (
-	(await Bun.file("certs/private.key").exists()) &&
-	(await Bun.file("certs/cert.pem").exists())
+	(process.env.SSL_KEY && process.env.SSL_CERT) ||
+	((await Bun.file("certs/private.key").exists()) &&
+		(await Bun.file("certs/cert.pem").exists()))
 ) {
 	const options = {
 		port: process.env.PORT || 443,
 		fetch: handler,
 		tls: {
-			key: Bun.file("certs/private.key"),
-			cert: Bun.file("certs/cert.pem"),
+			key: process.env.SSL_KEY || (await Bun.file("certs/private.key").text()),
+			cert: process.env.SSL_CERT || (await Bun.file("certs/cert.pem").text()),
 		},
 	};
 	const server = Bun.serve(options);
