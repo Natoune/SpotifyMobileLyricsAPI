@@ -50,6 +50,11 @@ if ! command -v keytool &>/dev/null; then
     exit
 fi
 
+if ! command -v jar &>/dev/null; then
+    echo "Java JDK is not installed. Please install it."
+    exit
+fi
+
 if ! command -v jq &>/dev/null; then
     echo "jq is not installed. Please install it."
     exit
@@ -69,10 +74,12 @@ cd $PWD/tmp-patch_xmanager
 echo "Downloading required tools..."
 wget https://github.com/REAndroid/APKEditor/releases/download/V1.4.0/APKEditor-1.4.0.jar -q -O APKEditor.jar
 
-wget https://dl.google.com/android/repository/build-tools_r34-rc3-linux.zip -q -O build-tools.zip
-unzip build-tools.zip &>/dev/null
-mv android-UpsideDownCake build-tools &>/dev/null
+wget https://dl.google.com/android/repository/build-tools_r34-linux.zip -q -O build-tools.zip
+jar xvf build-tools.zip &>/dev/null
+mv android-14 build-tools &>/dev/null
 rm build-tools.zip &>/dev/null
+chmod +x build-tools/zipalign &>/dev/null
+chmod +x build-tools/apksigner &>/dev/null
 
 #### Get Patched Spotify Releases ####
 if [ -z "$apk" ]; then
