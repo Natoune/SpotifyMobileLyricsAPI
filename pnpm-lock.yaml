@@ -43,8 +43,8 @@ importers:
         specifier: ^4.2.2
         version: 4.2.2
       '@types/node':
-        specifier: ^22.7.5
-        version: 22.7.5
+        specifier: ^22.7.7
+        version: 22.7.7
       typescript:
         specifier: 5.6.3
         version: 5.6.3
@@ -219,8 +219,8 @@ packages:
   '@types/node@16.18.11':
     resolution: {integrity: sha512-3oJbGBUWuS6ahSnEq1eN2XrCyf4YsWI8OyCvo7c64zQJNplk3mO84t53o8lfTk+2ji59g5ycfc6qQ3fdHliHuA==}
 
-  '@types/node@22.7.5':
-    resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
+  '@types/node@22.7.7':
+    resolution: {integrity: sha512-SRxCrrg9CL/y54aiMCG3edPKdprgMVGDXjA3gB8UmmBW5TcXzRUYAh8EWzTnSJFAd1rgImPELza+A3bJ+qxz8Q==}
 
   '@typescript/vfs@1.6.0':
     resolution: {integrity: sha512-hvJUjNVeBMp77qPINuUvYXj4FyWeeMMKZkxEATEU3hqBAQ7qdTBCUFT7Sp0Zu0faeEtFf+ldXxMEDr/bk73ISg==}
@@ -1046,7 +1046,7 @@ snapshots:
 
   '@types/node@16.18.11': {}
 
-  '@types/node@22.7.5':
+  '@types/node@22.7.7':
     dependencies:
       undici-types: 6.19.8
 
