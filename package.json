@@ -10,7 +10,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node adapter/node.mjs"
+    "start": "node adapter/node.mjs",
+    "patch:xmanager": "node scripts/xmanager.patch.js"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",

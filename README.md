@@ -9,7 +9,7 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
   - [xManager](#xmanager)
     - [Patch xManager](#patch-xmanager)
       - [Download the pre-patched releases](#download-the-pre-patched-releases)
-      - [Manually patch xManager release (Linux only)](#manually-patch-xmanager-release-linux-only)
+      - [Manually patch xManager release](#manually-patch-xmanager-release)
   - [Public servers list](#public-servers-list)
   - [Server setup](#server-setup)
     - [Vercel](#vercel)
@@ -44,21 +44,19 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
 
 Go to the [releases](https://github.com/Natoune/SpotifyMobileLyricsAPI/releases) page and download the latest release of Spotify patched with xManager and the Spotify Mobile Lyrics API.
 
-#### Manually patch xManager release (Linux only)
+#### Manually patch xManager release
 
-The script `patch_xmanager.sh` will automatically download the latest release of xManager-patched Spotify and apply the Spotify Mobile Lyrics API patch.
+The script `patch:xmanager` will automatically download the latest release of xManager and apply the lyrics patch.
 
 ```bash
-wget https://raw.githubusercontent.com/Natoune/SpotifyMobileLyricsAPI/main/patch_xmanager.sh
-chmod +x patch_xmanager.sh
-./patch_xmanager.sh --server "lyrics.natanchiodi.fr" --name "Natan Chiodi" --apk "Spotify v8.8.74.652 [xManager] (Merged).apk"
+npm run patch:xmanager -- --server "lyrics.natanchiodi.fr" --name "Natan Chiodi" --apk "Spotify v8.9.84.594 [xManager] (Merged).apk"
 ```
 
 Script arguments:
 
 - `--server` the lyrics API host (see [Public servers list](#public-servers-list)).
 - `--name` the name used to sign the patched APK.
-- `--apk` the path to the xManager-patched Spotify APK. If not provided, the script will download the latest release (user input required).
+- `--apk` the path to the Spotify APK. If not provided, the script will download the latest release (user input required).
 
 ## Public servers list
 
@@ -189,14 +187,14 @@ You have multiple options to set up SSL:
 
 ```bash
 npm run build
-node adapter/node.mjs
+npm start
 ```
 
 or
 
 ```bash
 bun build
-bun adapter/bun.mjs
+bun start
 ```
 
 ## Contributors
