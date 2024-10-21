@@ -4,6 +4,10 @@
   "description": "This API overrides the Spotify API endpoint used in the Spotify mobile app to fetch lyrics for the currently playing song.",
   "author": "Natan Chiodi <contact@natanchiodi.fr>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Natoune/SpotifyMobileLyricsAPI"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node adapter/node.mjs"
