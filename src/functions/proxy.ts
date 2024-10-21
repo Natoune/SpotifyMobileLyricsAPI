@@ -29,8 +29,10 @@ const proxyRequest = defineEventHandler(async (event) => {
 
 	let buffer: Buffer | undefined;
 
-	const body = await readRawBody(event, "binary");
-	if (body) buffer = Buffer.from(body, "binary");
+	if (event.method === "POST") {
+		const body = await readRawBody(event, "binary");
+		if (body) buffer = Buffer.from(body, "binary");
+	}
 
 	const options: RequestInit = {
 		method: event.method,
@@ -64,7 +66,7 @@ const proxyRequest = defineEventHandler(async (event) => {
 		}
 
 		await event.respondWith(
-			new Response(body || null, {
+			new Response(body.length ? body : null, {
 				status: res.status,
 				headers: responseHeaders,
 			}),
