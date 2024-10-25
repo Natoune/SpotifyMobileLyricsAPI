@@ -1,9 +1,8 @@
 FROM node:23-alpine3.19
-RUN apk --no-cache add git
 
 WORKDIR /usr/src/app
 
-RUN git clone https://github.com/Natoune/SpotifyMobileLyricsAPI.git .
+COPY . .
 
 RUN npm install -g pnpm
 RUN pnpm install

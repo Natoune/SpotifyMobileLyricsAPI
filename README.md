@@ -12,6 +12,7 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
       - [Manually patch xManager release](#manually-patch-xmanager-release)
   - [Public servers list](#public-servers-list)
   - [Server setup](#server-setup)
+    - [Docker](#docker)
     - [Vercel](#vercel)
     - [Cloudflare Workers](#cloudflare-workers)
     - [Node.js / Bun](#nodejs--bun)
@@ -68,6 +69,34 @@ Script arguments:
 | ➕ Add your server | See [Adding a public server](CONTRIBUTING.md#adding-a-public-server) |                                            |
 
 ## Server setup
+
+### Docker
+
+You can run the API in a Docker container.
+
+The container will expose the API on port 3000. You can change the port by changing the `-p` argument.
+
+Environment variables:
+
+- `SP_DC` the `sp_dc` cookie value from the Spotify Web Player (see [Finding sp_dc](https://github.com/akashrchandran/syrics/wiki/Finding-sp_dc)).
+- `SSL_CERT` (optional) the SSL certificate string.
+- `SSL_KEY` (optional) the SSL key string.
+
+You can also mount a volume to `/usr/src/app/certs` to provide the SSL certificate and key (`cert.pem` and `private.key`).
+
+#### Example
+
+1. Pull the image:
+
+```bash
+docker pull ghcr.io/natoune/spotify-mobile-lyrics-api:latest
+```
+
+2. Run the container:
+
+```bash
+docker run -d -p 443:3000 -e SP_DC=spotify-cookie  -v /path/to/certs:/usr/src/app/certs ghcr.io/natoune/spotify-mobile-lyrics-api:latest
+```
 
 ### Vercel
 

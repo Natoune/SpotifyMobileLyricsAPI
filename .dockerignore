@@ -1,0 +1,8 @@
+**
+!adapter/
+!api/
+!src/
+!package.json
+!pnpm-lock.yaml
+!tsconfig.json
+!tsconfig.build.json
