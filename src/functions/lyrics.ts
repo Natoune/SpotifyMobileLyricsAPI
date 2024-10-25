@@ -23,7 +23,10 @@ export default {
 			market,
 			event.context.cloudflare?.env || process.env,
 		);
-		if (!lyrics_buffer) throw createError({ status: 404 });
+		if (!lyrics_buffer) {
+			setHeader(event, "Cache-Control", "no-store");
+			throw createError({ status: 404 });
+		}
 
 		setHeader(event, "Content-Type", "application/protobuf");
 		return lyrics_buffer;
