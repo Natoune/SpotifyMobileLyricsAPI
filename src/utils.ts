@@ -252,13 +252,13 @@ async function getNeteaseLyrics(track_id: string) {
 							Number.parseInt(line.slice(1, 3)) * 60 * 1000 +
 							Number.parseInt(line.slice(4, 6)) * 1000 +
 							Number.parseInt(line.split("]")[0].split(".")[1]),
-						words: line.split("]").slice(1).join(""),
+						words: line.split("]").slice(1).join("").trim(),
 						syllabes: [],
 						endTimeMs: 0,
 					}))
 				: lines.map((line) => ({
 						startTimeMs: 0,
-						words: line,
+						words: line.trim(),
 						syllabes: [],
 						endTimeMs: 0,
 					})),
@@ -308,13 +308,13 @@ async function getLRCLibLyrics(track_id: string) {
 							Number.parseInt(line.slice(1, 3)) * 60 * 1000 +
 							Number.parseInt(line.slice(4, 6)) * 1000 +
 							Number.parseInt(line.split("]")[0].split(".")[1]),
-						words: line.split("]").slice(1).join(""),
+						words: line.split("]").slice(1).join("").trim(),
 						syllabes: [],
 						endTimeMs: 0,
 					}))
 				: lines.map((line) => ({
 						startTimeMs: 0,
-						words: line,
+						words: line.trim(),
 						syllabes: [],
 						endTimeMs: 0,
 					})),
