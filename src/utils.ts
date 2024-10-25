@@ -70,12 +70,16 @@ export async function getSpotifyToken(
 		} catch {}
 	}
 
+	const SP_DC =
+		env.SP_DC.split(",")[
+			Math.floor(Math.random() * env.SP_DC.split(",").length)
+		];
 	spotifyToken = await fetch(
 		"https://open.spotify.com/get_access_token?reason=transport&productType=web_player",
 		{
 			headers: {
 				"User-Agent": ua,
-				Cookie: `sp_dc=${env.SP_DC}`,
+				Cookie: `sp_dc=${SP_DC}`,
 			},
 		},
 	)
