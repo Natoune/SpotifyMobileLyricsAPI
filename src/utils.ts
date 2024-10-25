@@ -352,7 +352,7 @@ export async function fetchLyrics(
 		const lyrics_obj = await fetcher();
 
 		if (lyrics_obj) {
-			if (lyrics_obj.lyrics.colors) colors = lyrics_obj.lyrics.colors;
+			if (lyrics_obj.colors) colors = lyrics_obj.colors;
 			else lyrics_obj.colors = colors;
 
 			const proto = protobuf.create(RootSchema, lyrics_obj);
