@@ -50,14 +50,17 @@ Go to the [releases](https://github.com/Natoune/SpotifyMobileLyricsAPI/releases)
 The script `patch:xmanager` will automatically download the latest release of xManager and apply the lyrics patch.
 
 ```bash
-npm run patch:xmanager -- --server "lyrics.natanchiodi.fr" --name "Natan Chiodi" --apk "Spotify v8.9.84.594 [xManager] (Merged).apk"
+npm run patch:xmanager -- --server "lyrics.natanchiodi.fr" --apk "Spotify v8.9.84.594 [xManager] (Merged).apk" --ks-file "keystore.jks" --ks-pass "******"
 ```
 
 Script arguments:
 
 - `--server` the lyrics API host (see [Public servers list](#public-servers-list)).
-- `--name` the name used to sign the patched APK.
 - `--apk` the path to the Spotify APK. If not provided, the script will download the latest release (user input required).
+- `--ks-file` (optional) the path to the keystore file.
+- `--ks-pass` (optional) the keystore password.
+
+If no keystore is provided, the script will sign the APK with your username.
 
 ## Public servers list
 
