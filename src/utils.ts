@@ -131,10 +131,7 @@ async function getTrackInfo(track_id: string) {
 		.catch(() => ({ name: null, artist: null, album: null, duration: null }));
 }
 
-async function getSpotifyLyrics(
-	id: string,
-	market: string,
-): Promise<{ bytes: Uint8Array | null; synced: boolean }> {
+async function getSpotifyLyrics(id: string, market: string) {
 	const lyrics = await fetch(
 		`https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`,
 		{
@@ -160,12 +157,9 @@ async function getSpotifyLyrics(
 		.catch(() => null);
 
 	if (!lyrics || !lyrics.lyrics?.lines || !lyrics.lyrics?.lines.length)
-		return { bytes: null, synced: false };
+		return null;
 
-	const proto = protobuf.create(RootSchema, lyrics);
-	const bytes = protobuf.toBinary(RootSchema, proto);
-
-	return { bytes, synced: lyrics.lyrics.syncType === 1 };
+	return lyrics;
 }
 
 async function fetchNetease(body) {
@@ -205,11 +199,9 @@ async function fetchNetease(body) {
 		.catch(() => null);
 }
 
-async function getNeteaseLyrics(
-	track_id: string,
-): Promise<{ bytes: Uint8Array | null; synced: boolean }> {
+async function getNeteaseLyrics(track_id: string) {
 	const { name, artist } = await getTrackInfo(track_id);
-	if (!name || !artist) return { bytes: null, synced: false };
+	if (!name || !artist) return null;
 
 	const id = await fetchNetease({
 		method: "POST",
@@ -224,7 +216,7 @@ async function getNeteaseLyrics(
 		.then((data) => data.result?.songs?.[0]?.id)
 		.catch(() => null);
 
-	if (!id) return { bytes: null, synced: false };
+	if (!id) return null;
 
 	const lyrics = await fetchNetease({
 		method: "POST",
@@ -234,7 +226,7 @@ async function getNeteaseLyrics(
 		.then((data) => data.lrc?.lyric)
 		.catch(() => null);
 
-	if (!lyrics) return { bytes: null, synced: false };
+	if (!lyrics) return null;
 
 	let lines: string[] = lyrics.split("\n");
 	let i = 0;
@@ -249,7 +241,7 @@ async function getNeteaseLyrics(
 		/^\[\d{2}:\d{2}\.\d{2,3}\]/.test(line),
 	);
 
-	if (!lines.length) return { bytes: null, synced: false };
+	if (!lines.length) return null;
 
 	const lyrics_obj = {
 		lyrics: {
@@ -275,25 +267,14 @@ async function getNeteaseLyrics(
 			providerDisplayName: "NetEase Cloud Music",
 			language: langDetector.detect(lines.join("\n"))[0][0],
 		},
-		colors: {
-			background: -9079435,
-			text: -16777216,
-			highlightText: -1,
-		},
 	};
 
-	// @ts-ignore
-	const proto = protobuf.create(RootSchema, lyrics_obj);
-	const bytes = protobuf.toBinary(RootSchema, proto);
-
-	return { bytes, synced: synced_lines.length > 0 };
+	return lyrics_obj;
 }
 
-async function getLRCLibLyrics(
-	track_id: string,
-): Promise<{ bytes: Uint8Array | null; synced: boolean }> {
+async function getLRCLibLyrics(track_id: string) {
 	const { name, artist, album, duration } = await getTrackInfo(track_id);
-	if (!name || !artist) return { bytes: null, synced: false };
+	if (!name || !artist) return null;
 
 	const url = new URL("https://lrclib.net/api/get");
 	url.searchParams.append("track_name", name);
@@ -309,8 +290,7 @@ async function getLRCLibLyrics(
 		},
 	}).then((res) => res.json());
 
-	if (!lyrics?.plainLyrics && !lyrics?.syncedLyrics)
-		return { bytes: null, synced: false };
+	if (!lyrics?.plainLyrics && !lyrics?.syncedLyrics) return null;
 
 	const lines = lyrics.plainLyrics?.split("\n");
 	const synced_lines = lyrics.syncedLyrics
@@ -332,7 +312,7 @@ async function getLRCLibLyrics(
 						syllabes: [],
 						endTimeMs: 0,
 					}))
-				: lines.split("\n").map((line) => ({
+				: lines.map((line) => ({
 						startTimeMs: 0,
 						words: line,
 						syllabes: [],
@@ -343,18 +323,9 @@ async function getLRCLibLyrics(
 			providerDisplayName: "LRCLIB",
 			language: langDetector.detect(lines.join("\n"))[0][0],
 		},
-		colors: {
-			background: -9079435,
-			text: -16777216,
-			highlightText: -1,
-		},
 	};
 
-	// @ts-ignore
-	const proto = protobuf.create(RootSchema, lyrics_obj);
-	const bytes = protobuf.toBinary(RootSchema, proto);
-
-	return { bytes, synced: !!synced_lines };
+	return lyrics_obj;
 }
 
 export async function fetchLyrics(
@@ -370,14 +341,27 @@ export async function fetchLyrics(
 		() => getLRCLibLyrics(track_id),
 	];
 
+	let colors = {
+		background: -9079435,
+		text: -16777216,
+		highlightText: -1,
+	};
 	let unsyncedLyrics: Uint8Array | null = null;
 
 	for (const fetcher of lyricsFetchers) {
-		const { bytes, synced } = await fetcher();
+		const lyrics_obj = await fetcher();
 
-		if (bytes && bytes.length > 0) {
-			if (synced) return bytes;
-			if (!unsyncedLyrics) unsyncedLyrics = bytes;
+		if (lyrics_obj) {
+			if (lyrics_obj.lyrics.colors) colors = lyrics_obj.lyrics.colors;
+			else lyrics_obj.colors = colors;
+
+			const proto = protobuf.create(RootSchema, lyrics_obj);
+
+			if (lyrics_obj.syncType === 1)
+				return protobuf.toBinary(RootSchema, proto);
+
+			if (!unsyncedLyrics)
+				unsyncedLyrics = protobuf.toBinary(RootSchema, proto);
 		}
 	}
 
