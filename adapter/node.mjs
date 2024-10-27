@@ -17,8 +17,16 @@ if (
 		cert: process.env.SSL_CERT || fs.readFileSync("certs/cert.pem"),
 	};
 	const server = httpsServer(options, listener);
-	server.listen(process.env.PORT || 443);
+	server.listen(process.env.PORT || 443, () => {
+		console.log(
+			`Listening on ${server.address().address}:${server.address().port}`,
+		);
+	});
 } else {
 	const server = httpServer(listener);
-	server.listen(process.env.PORT || 80);
+	server.listen(process.env.PORT || 80, () => {
+		console.log(
+			`Listening on ${server.address().address}:${server.address().port}`,
+		);
+	});
 }
