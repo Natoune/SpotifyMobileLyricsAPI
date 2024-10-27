@@ -11,9 +11,7 @@ export const app = createApp({
 		try {
 			const id = Math.random().toString(36).substr(2, 9);
 			const ip =
-				event.headers["cf-connecting-ip"] ||
-				event.headers["x-real-ip"] ||
-				event.req.socket.remoteAddress;
+				event.headers.get("x-real-ip") || event.req.socket.remoteAddress;
 			console.log(`[${id}] (${ip}) ${event.method} ${event.path}`);
 			console.log(`[${id}] (${ip}) Request headers:`, event.headers);
 			// @ts-ignore
@@ -26,9 +24,7 @@ export const app = createApp({
 		if (!event.id) return;
 		try {
 			const ip =
-				event.headers["cf-connecting-ip"] ||
-				event.headers["x-real-ip"] ||
-				event.req.socket.remoteAddress;
+				event.headers.get("x-real-ip") || event.req.socket.remoteAddress;
 
 			if (event.res.statusCode.toString().startsWith("2")) {
 				console.log(
