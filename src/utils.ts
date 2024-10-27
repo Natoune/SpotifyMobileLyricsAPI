@@ -243,6 +243,8 @@ async function getNeteaseLyrics(track_id: string) {
 
 	if (!lines.length) return null;
 
+	const language = langDetector.detect(lines.join("\n"));
+
 	const lyrics_obj = {
 		lyrics: {
 			syncType: synced_lines.length ? 1 : undefined,
@@ -265,7 +267,7 @@ async function getNeteaseLyrics(track_id: string) {
 			provider: "netease",
 			providerLyricsId: `${id}`,
 			providerDisplayName: "NetEase Cloud Music",
-			language: langDetector.detect(lines.join("\n"))[0][0],
+			language: language?.[0]?.[0] || "en",
 		},
 	};
 
@@ -299,6 +301,8 @@ async function getLRCLibLyrics(track_id: string) {
 				.filter((line) => /^\[\d{2}:\d{2}\.\d{2,3}\]/.test(line))
 		: null;
 
+	const language = langDetector.detect(lines.join("\n"));
+
 	const lyrics_obj = {
 		lyrics: {
 			syncType: synced_lines ? 1 : undefined,
@@ -321,7 +325,7 @@ async function getLRCLibLyrics(track_id: string) {
 			provider: "lrclib",
 			providerLyricsId: `${lyrics.id}`,
 			providerDisplayName: "LRCLIB",
-			language: langDetector.detect(lines.join("\n"))[0][0],
+			language: language?.[0]?.[0] || "en",
 		},
 	};
 
