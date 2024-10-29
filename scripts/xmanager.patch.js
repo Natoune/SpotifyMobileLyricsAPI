@@ -303,7 +303,7 @@ if (apk && !fs.existsSync(apk)) {
 	// Download essential tools
 	console.log("Downloading required tools...");
 	await download("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar", "apktool.jar");
-	await download("https://dl.google.com/android/repository/build-tools_r34-linux.zip", "build-tools.zip");
+	await download(`https://dl.google.com/android/repository/build-tools_r34-${isWindows ? "windows" : "linux"}.zip`, "build-tools.zip");
 
 	// Extract and set permissions for downloaded tools
 	execSync("jar xvf build-tools.zip");
