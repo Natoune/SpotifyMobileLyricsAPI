@@ -233,6 +233,7 @@ async function getNeteaseLyrics(track_id: string) {
 	lines = lines.filter((line) => line.trim() !== "");
 	lines = lines.filter((line) => {
 		if (line.includes("作词 :") || line.includes("作曲 :")) return false;
+		if (!line.includes("]")) return false;
 		if (line.split("]")[1].trim() === "" && i === 0) return;
 		i++;
 		return true;
