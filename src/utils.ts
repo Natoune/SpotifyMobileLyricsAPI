@@ -37,11 +37,13 @@ export async function getSpotifyToken(
 	if (env.sp_redis) {
 		try {
 			const accessToken = await env.sp_redis.get("sp_access_token");
-			if (
-				accessToken &&
-				Number.parseInt(accessToken.split(":")[1]) > Date.now()
-			)
-				return accessToken.split(":")[0];
+			if (accessToken)
+				spotifyToken = {
+					accessToken: accessToken.split(":")[0],
+					accessTokenExpirationTimestampMs: Number.parseInt(
+						accessToken.split(":")[1],
+					),
+				};
 		} catch {}
 	} else if (env.REDIS_URL) {
 		try {
@@ -53,7 +55,11 @@ export async function getSpotifyToken(
 			}
 
 			const accessToken = await redisClient.get("sp_access_token");
-			if (accessToken) return accessToken;
+			if (accessToken)
+				spotifyToken = {
+					accessToken: accessToken,
+					accessTokenExpirationTimestampMs: Date.now() + 3600000,
+				};
 		} catch {}
 	} else {
 		try {
@@ -65,10 +71,17 @@ export async function getSpotifyToken(
 					).toString(),
 				);
 
-				if (accessTokenExpirationTimestampMs > Date.now()) return accessToken;
+				if (accessToken)
+					spotifyToken = { accessToken, accessTokenExpirationTimestampMs };
 			}
 		} catch {}
 	}
+
+	if (
+		spotifyToken?.accessToken &&
+		spotifyToken?.accessTokenExpirationTimestampMs > Date.now()
+	)
+		return spotifyToken.accessToken;
 
 	const SP_DC =
 		env.SP_DC.split(",")[

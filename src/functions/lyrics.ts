@@ -9,7 +9,7 @@ export default {
 		const query = getQuery(event);
 
 		let market = "US";
-		if (query.market === "from_token") {
+		if (!query.market || query.market === "from_token") {
 			market =
 				event.headers.get("x-vercel-ip-country") ||
 				event.headers.get("cf-ipcountry") ||
