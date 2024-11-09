@@ -110,6 +110,31 @@ const addAfter = (file, regex, content, n = 1) => {
 	return true;
 };
 
+// Add a new host to the list of hosts to apply authorization to
+const authorizeHost = (file) => {
+	const lines = fs.readFileSync(file, "utf-8").split("\n");
+	let i = 0;
+	let line = lines[i];
+	while (!line.match(/const-string\/jumbo v0, "spclient.wg.spotify.com"/) && i < lines.length) {
+		i++;
+		line = lines[i];
+	}
+
+	if (i === lines.length) throwPatchError();
+
+	const authorizeHost = [];
+	while (!line.match(/if-nez v0, :cond_1/)) {
+		authorizeHost.push(line);
+		i++;
+		line = lines[i];
+	}
+	authorizeHost.push(lines[i++]);
+
+	const patchedAuthorizeHost = authorizeHost.join("\n").replace("spclient.wg.spotify.com", server);
+
+	if (!addAfter(file, 'const-string/jumbo v0, "spclient.wg.spotify.com"', patchedAuthorizeHost, -1)) throwPatchError();
+};
+
 // Patch Spotify Lite
 const patchSpotifyLite = () => {
 	const urlPattern = /const-string v2, "https:\/\/(spclient\.wg\.spotify\.com|lyrics\.natanchiodi\.fr)\/"/;
@@ -174,6 +199,12 @@ const patchSpotifyLite = () => {
 		console.error("An error occurred while patching the APK.");
 		process.exit(1);
 	}
+
+	// Authorize new host
+	const webgateHelperFile = find("disassembled", "WebgateHelper.smali");
+	if (!webgateHelperFile) throwPatchError();
+
+	authorizeHost(webgateHelperFile);
 };
 
 // Patch Spotify Stock / Amoled
@@ -237,6 +268,14 @@ const patchSpotifyStandard = () => {
 	lines.splice(i + 1, 0, line.replace("}", ", v5}").replace(";)", ";Ljava/lang/String;)"));
 
 	fs.writeFileSync(file, lines.join("\n"));
+
+	// Authorize new host
+	const oauthHelperFile = find("disassembled", "OAuthHelper.smali");
+	const webgateHelperFile = find("disassembled", "WebgateHelper.smali");
+	if (!oauthHelperFile || !webgateHelperFile) throwPatchError();
+
+	authorizeHost(oauthHelperFile);
+	authorizeHost(webgateHelperFile);
 };
 
 // Fetch command-line arguments for server, name, and apk file paths

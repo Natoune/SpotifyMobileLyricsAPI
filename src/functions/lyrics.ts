@@ -22,6 +22,7 @@ export default {
 			track_id,
 			market,
 			event.context.cloudflare?.env || process.env,
+			event.headers.get("authorization"),
 		);
 		if (!lyrics_buffer) {
 			setHeader(event, "Cache-Control", "no-store");

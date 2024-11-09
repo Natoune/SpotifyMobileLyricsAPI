@@ -337,8 +337,15 @@ export async function fetchLyrics(
 	track_id: string,
 	market: string,
 	setEnv: Record<string, any>,
+	authorization: string | null,
 ) {
 	env = setEnv;
+
+	if (authorization && authorization.split(" ").length > 1)
+		spotifyToken = {
+			accessToken: authorization.split(" ")[1],
+			accessTokenExpirationTimestampMs: Date.now() + 3600000,
+		};
 
 	const lyricsFetchers = [
 		() => getSpotifyLyrics(track_id, market),
