@@ -173,7 +173,9 @@ async function getTrackInfo(track_id: string) {
 	let trackInfo = await redisGet(`sp_track_${track_id}`);
 	if (trackInfo) {
 		try {
-			const table = JSON.parse(trackInfo);
+			const table = JSON.parse(
+				Buffer.from(trackInfo, "base64").toString("utf-8"),
+			);
 			if (table.length === 4) {
 				return {
 					name: table[0],
@@ -212,12 +214,14 @@ async function getTrackInfo(track_id: string) {
 	)
 		await redisSet(
 			`sp_track_${track_id}`,
-			JSON.stringify([
-				trackInfo.name,
-				trackInfo.artist,
-				trackInfo.album,
-				trackInfo.duration,
-			]),
+			Buffer.from(
+				JSON.stringify([
+					trackInfo.name,
+					trackInfo.artist,
+					trackInfo.album,
+					trackInfo.duration,
+				]),
+			).toString("base64"),
 		);
 
 	return trackInfo;
