@@ -4,6 +4,7 @@ import LanguageDetect from "languagedetect";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import querystring from "node:querystring";
+import type { SetOptions } from "redis";
 import { createClient } from "redis";
 import { RootSchema } from "./gen/lyrics_pb";
 
@@ -23,29 +24,16 @@ let spotifyToken: {
 const ua =
 	"Spotify Mobile Lyrics API (https://github.com/Natoune/SpotifyMobileLyricsAPI)";
 
-export async function getSpotifyToken(
-	setEnv?: Record<string, any>,
-): Promise<string | null> {
-	if (setEnv) env = setEnv;
-
-	if (
-		spotifyToken?.accessToken &&
-		spotifyToken?.accessTokenExpirationTimestampMs > Date.now()
-	)
-		return spotifyToken.accessToken;
-
+export async function redisGet(key: string) {
 	if (env.sp_redis) {
 		try {
-			const accessToken = await env.sp_redis.get("sp_access_token");
-			if (accessToken)
-				spotifyToken = {
-					accessToken: accessToken.split(":")[0],
-					accessTokenExpirationTimestampMs: Number.parseInt(
-						accessToken.split(":")[1],
-					),
-				};
-		} catch {}
-	} else if (env.REDIS_URL) {
+			return await env.sp_redis.get(key);
+		} catch {
+			return null;
+		}
+	}
+
+	if (env.REDIS_URL) {
 		try {
 			if (!redisClient) {
 				redisClient = createClient({
@@ -54,14 +42,72 @@ export async function getSpotifyToken(
 				await redisClient.connect();
 			}
 
-			const accessToken = await redisClient.get("sp_access_token");
-			if (accessToken)
-				spotifyToken = {
-					accessToken: accessToken,
-					accessTokenExpirationTimestampMs: Date.now() + 3600000,
-				};
-		} catch {}
+			return await redisClient.get(key);
+		} catch {
+			return null;
+		}
+	}
+
+	return null;
+}
+
+export async function redisSet(
+	key: string,
+	value: string,
+	options?: SetOptions,
+) {
+	if (env.sp_redis) {
+		try {
+			await env.sp_redis.put(key, value);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	if (env.REDIS_URL) {
+		try {
+			if (!redisClient) {
+				redisClient = createClient({
+					url: env.REDIS_URL,
+				});
+				await redisClient.connect();
+			}
+
+			await redisClient.set(key, value, options);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	return false;
+}
+
+export async function getSpotifyToken(
+	setEnv?: Record<string, any>,
+): Promise<string | null> {
+	if (setEnv) env = setEnv;
+
+	// Get token from memory
+	if (
+		spotifyToken?.accessToken &&
+		spotifyToken?.accessTokenExpirationTimestampMs > Date.now()
+	)
+		return spotifyToken.accessToken;
+
+	// Get token from cache
+	const accessToken = await redisGet("sp_access_token");
+
+	if (accessToken) {
+		spotifyToken = {
+			accessToken: accessToken.split(":")[0],
+			accessTokenExpirationTimestampMs: Number.parseInt(
+				accessToken.split(":")[1],
+			),
+		};
 	} else {
+		// Get token from filesystem
 		try {
 			if (existsSync(join(__dirname, "..", "token"))) {
 				const { accessToken, accessTokenExpirationTimestampMs } = JSON.parse(
@@ -83,6 +129,7 @@ export async function getSpotifyToken(
 	)
 		return spotifyToken.accessToken;
 
+	// Get token from API
 	const SP_DC =
 		env.SP_DC.split(",")[
 			Math.floor(Math.random() * env.SP_DC.split(",").length)
@@ -101,33 +148,44 @@ export async function getSpotifyToken(
 
 	if (!spotifyToken) return null;
 
-	if (env.sp_redis) {
+	if (
+		!(await redisSet(
+			"sp_access_token",
+			`${spotifyToken.accessToken}:${spotifyToken.accessTokenExpirationTimestampMs}`,
+			{
+				PXAT: spotifyToken.accessTokenExpirationTimestampMs,
+			},
+		))
+	) {
 		try {
-			await env.sp_redis.put(
-				"sp_access_token",
-				`${spotifyToken.accessToken}:${spotifyToken.accessTokenExpirationTimestampMs}`,
+			writeFileSync(
+				join(__dirname, "..", "token"),
+				Buffer.from(JSON.stringify(spotifyToken), "utf-8").toString("hex"),
 			);
 		} catch {}
-	} else if (redisClient) {
-		try {
-			await redisClient.set("sp_access_token", spotifyToken.accessToken, {
-				PXAT: spotifyToken.accessTokenExpirationTimestampMs,
-			});
-		} catch {}
 	}
-
-	try {
-		writeFileSync(
-			join(__dirname, "..", "token"),
-			Buffer.from(JSON.stringify(spotifyToken), "utf-8").toString("hex"),
-		);
-	} catch {}
 
 	return spotifyToken.accessToken;
 }
 
 async function getTrackInfo(track_id: string) {
-	return await fetch(`https://api.spotify.com/v1/tracks/${track_id}`, {
+	// Get info from cache
+	let trackInfo = await redisGet(`sp_track_${track_id}`);
+	if (trackInfo) {
+		try {
+			const table = JSON.parse(trackInfo);
+			if (table.length === 4) {
+				return {
+					name: table[0],
+					artist: table[1],
+					album: table[2],
+					duration: table[3],
+				};
+			}
+		} catch {}
+	}
+
+	trackInfo = await fetch(`https://api.spotify.com/v1/tracks/${track_id}`, {
 		headers: {
 			Authorization: `Bearer ${await getSpotifyToken()}`,
 		},
@@ -141,7 +199,22 @@ async function getTrackInfo(track_id: string) {
 				duration: data?.duration_ms,
 			};
 		})
-		.catch(() => ({ name: null, artist: null, album: null, duration: null }));
+		.catch(() => null);
+
+	if (!trackInfo)
+		return { name: null, artist: null, album: null, duration: null };
+
+	await redisSet(
+		`sp_track_${track_id}`,
+		JSON.stringify([
+			trackInfo.name,
+			trackInfo.artist,
+			trackInfo.album,
+			trackInfo.duration,
+		]),
+	);
+
+	return trackInfo;
 }
 
 async function getSpotifyLyrics(id: string, market: string) {
