@@ -204,15 +204,21 @@ async function getTrackInfo(track_id: string) {
 	if (!trackInfo)
 		return { name: null, artist: null, album: null, duration: null };
 
-	await redisSet(
-		`sp_track_${track_id}`,
-		JSON.stringify([
-			trackInfo.name,
-			trackInfo.artist,
-			trackInfo.album,
-			trackInfo.duration,
-		]),
-	);
+	if (
+		!!trackInfo.name &&
+		!!trackInfo.artist &&
+		!!trackInfo.album &&
+		!!trackInfo.duration
+	)
+		await redisSet(
+			`sp_track_${track_id}`,
+			JSON.stringify([
+				trackInfo.name,
+				trackInfo.artist,
+				trackInfo.album,
+				trackInfo.duration,
+			]),
+		);
 
 	return trackInfo;
 }
