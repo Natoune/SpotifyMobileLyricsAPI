@@ -91,7 +91,7 @@ const getMethod = (file, method, declaration = "public static") => {
 };
 
 // Extract a class name from a file path
-const extractClassName = (file) => file.split("/").pop().split(".")[0];
+const extractClassName = (file) => file.split(path.sep).pop().split(".")[0];
 
 // Insert content after a line matching a specified regex pattern within a file
 const addAfter = (file, regex, content, n = 1) => {
@@ -196,8 +196,7 @@ const patchSpotifyLite = () => {
 			.replace(/move-result-object v3/, "move-result-object v14");
 
 	if (!addAfter(file3, "invoke-interface {v14}", patched, -1)) {
-		console.error("An error occurred while patching the APK.");
-		process.exit(1);
+		throwPatchError();
 	}
 
 	// Authorize new host
@@ -239,7 +238,7 @@ const patchSpotifyStandard = () => {
 	const classFile = findContent("disassembled", new RegExp(/"prepareRetrofit\(/));
 	if (!classFile) throwPatchError();
 
-	const className = classFile.split("/").pop().split(".")[0];
+	const className = extractClassName(classFile);
 	const originalMethod = getMethod(classFile, "b");
 	const patchedMethod = originalMethod
 		.replace(/(.method public static b\(.*)\)/, "$1Ljava/lang/String;)")
@@ -358,7 +357,7 @@ if (apk && !fs.existsSync(apk)) {
 			stdio: "ignore",
 		});
 
-		const stringsXml = fs.readFileSync("xManager/res/values/strings.xml", "utf-8");
+		const stringsXml = fs.readFileSync(path.join("xManager", "res", "values", "strings.xml"), "utf-8");
 		const urlMatch = stringsXml.match(/https:\/\/gist\.githubusercontent\.com\/[^<]*/);
 		const url = urlMatch ? urlMatch[0] : null;
 		if (!url) {
@@ -422,7 +421,7 @@ if (apk && !fs.existsSync(apk)) {
 		stdio: "ignore",
 	});
 
-	const manifestContent = fs.readFileSync("disassembled/AndroidManifest.xml", "utf-8");
+	const manifestContent = fs.readFileSync(path.join("disassembled", "AndroidManifest.xml"), "utf-8");
 
 	if (!manifestContent.match(/com\.spotify\.(music|lite)/)) {
 		console.error("The provided APK is not a Spotify APK.");
@@ -442,7 +441,7 @@ if (apk && !fs.existsSync(apk)) {
 	execSync("java -jar apktool.jar b disassembled -o output.apk", {
 		stdio: "ignore",
 	});
-	execSync(`./build-tools/zipalign${isWindows ? ".exe" : ""} -p -f 4 output.apk aligned.apk`);
+	execSync(`.${path.sep}build-tools${path.sep}zipalign${isWindows ? ".exe" : ""} -p -f 4 output.apk aligned.apk`);
 
 	if (!fs.existsSync("aligned.apk")) {
 		console.error("An error occurred while building the patched APK.");
@@ -452,7 +451,7 @@ if (apk && !fs.existsSync(apk)) {
 	// Sign APK
 	console.log("Signing APK...");
 	if (keystore.file && keystore.password) {
-		execSync(`./build-tools/apksigner${isWindows ? ".bat" : ""} sign --ks "${keystore.file}" --ks-pass "pass:${keystore.password}" --out ../Patched.apk aligned.apk`, {
+		execSync(`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`, {
 			stdio: "ignore",
 		});
 	} else {
@@ -461,7 +460,7 @@ if (apk && !fs.existsSync(apk)) {
 		execSync(`keytool -genkey -v -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias "${name}" -storepass ${password} -keypass ${password} -dname "CN=${name}"`, {
 			stdio: "ignore",
 		});
-		execSync(`./build-tools/apksigner${isWindows ? ".bat" : ""} sign --ks keystore.jks --ks-pass pass:${password} --out ../Patched.apk aligned.apk`, {
+		execSync(`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks keystore.jks --ks-pass "pass:${password}" --out ..${path.sep}Patched.apk aligned.apk`, {
 			stdio: "ignore",
 		});
 	}
