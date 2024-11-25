@@ -12,8 +12,8 @@ importers:
         specifier: ^2.2.2
         version: 2.2.2
       '@vercel/node':
-        specifier: ^3.2.24
-        version: 3.2.24
+        specifier: ^3.2.26
+        version: 3.2.26
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
@@ -233,19 +233,19 @@ packages:
     peerDependencies:
       typescript: '*'
 
-  '@vercel/build-utils@8.4.12':
-    resolution: {integrity: sha512-pIH0b965wJhd1otROVPndfZenPKFVoYSaRjtSKVOT/oNBT13ifq86UVjb5ZjoVfqUI2TtSTP+68kBqLPeoq30g==}
+  '@vercel/build-utils@8.5.0':
+    resolution: {integrity: sha512-zyqeauvze7/XRFj8XRm0ot3Ec7l+Px5k1zzzVnARiXwC3x594dLen8Cjm0dpoy7blfWYXUuCMsbBWT2O2OHXxA==}
 
-  '@vercel/error-utils@2.0.2':
-    resolution: {integrity: sha512-Sj0LFafGpYr6pfCqrQ82X6ukRl5qpmVrHM/191kNYFqkkB9YkjlMAj6QcEsvCG259x4QZ7Tya++0AB85NDPbKQ==}
+  '@vercel/error-utils@2.0.3':
+    resolution: {integrity: sha512-CqC01WZxbLUxoiVdh9B/poPbNpY9U+tO1N9oWHwTl5YAZxcqXmmWJ8KNMFItJCUUWdY3J3xv8LvAuQv2KZ5YdQ==}
 
   '@vercel/nft@0.27.3':
     resolution: {integrity: sha512-oySTdDSzUAFDXpsSLk9Q943o+/Yu/+TCFxnehpFQEf/3khi2stMpTHPVNwFdvZq/Z4Ky93lE+MGHpXCRpMkSCA==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@vercel/node@3.2.24':
-    resolution: {integrity: sha512-KEm50YBmcfRNOw5NfdcqMI4BkP4+5TD9kRwAByHHlIZXLj1NTTknvMF+69sHBYzwpK/SUZIkeo7jTrtcl4g+RQ==}
+  '@vercel/node@3.2.26':
+    resolution: {integrity: sha512-nN6S3srh4u/5TNFf7k9efw2RHhy135ETAnrQxgOpdnshqhe/n5Q/CcJy1eB6ZewAs6VJsHJU5TOZ+SO72+pg/w==}
 
   '@vercel/static-config@3.0.0':
     resolution: {integrity: sha512-2qtvcBJ1bGY0dYGYh3iM7yGKkk971FujLEDXzuW5wcZsPr1GSEjO/w2iSr3qve6nDDtBImsGoDEnus5FI4+fIw==}
@@ -1067,9 +1067,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vercel/build-utils@8.4.12': {}
+  '@vercel/build-utils@8.5.0': {}
 
-  '@vercel/error-utils@2.0.2': {}
+  '@vercel/error-utils@2.0.3': {}
 
   '@vercel/nft@0.27.3':
     dependencies:
@@ -1089,14 +1089,14 @@ snapshots:
       - encoding
       - supports-color
 
-  '@vercel/node@3.2.24':
+  '@vercel/node@3.2.26':
     dependencies:
       '@edge-runtime/node-utils': 2.3.0
       '@edge-runtime/primitives': 4.1.0
       '@edge-runtime/vm': 3.2.0
       '@types/node': 16.18.11
-      '@vercel/build-utils': 8.4.12
-      '@vercel/error-utils': 2.0.2
+      '@vercel/build-utils': 8.5.0
+      '@vercel/error-utils': 2.0.3
       '@vercel/nft': 0.27.3
       '@vercel/static-config': 3.0.0
       async-listen: 3.0.0
