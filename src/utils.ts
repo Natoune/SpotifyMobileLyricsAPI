@@ -207,6 +207,7 @@ async function getTrackInfo(track_id: string) {
 		return { name: null, artist: null, album: null, duration: null };
 
 	if (
+		env.STORE_TRACK_INFO === "true" &&
 		!!trackInfo.name &&
 		!!trackInfo.artist &&
 		!!trackInfo.album &&
