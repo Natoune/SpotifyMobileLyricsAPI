@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.2",
-    "@vercel/node": "^3.2.24",
+    "@vercel/node": "^3.2.27",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "h3": "^1.13.0",
