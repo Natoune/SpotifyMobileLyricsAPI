@@ -17,7 +17,7 @@
     "@bufbuild/protobuf": "^2.2.2",
     "@vercel/node": "^3.2.24",
     "crypto-js": "^4.2.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "h3": "^1.13.0",
     "h3-compression": "^0.3.2",
     "languagedetect": "^2.0.0",
