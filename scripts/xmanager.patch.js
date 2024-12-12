@@ -619,7 +619,7 @@ if (apk && !fs.existsSync(apk)) {
 		"utf-8",
 	);
 
-	if (!manifestContent.match(/com\.spotify\.(music|lite)/)) {
+	if (!manifestContent.match(/com\.spotify\.(music|musix|lite)/)) {
 		console.error("The provided APK is not a Spotify APK.");
 		process.exit(1);
 	}
