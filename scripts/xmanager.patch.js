@@ -12,7 +12,10 @@ const { Readable } = require("node:stream");
 const isWindows = process.platform === "win32";
 const exists = (command) => {
 	try {
-		const stdout = execSync(isWindows ? `where ${command}` : `command -v ${command}`, { stdio: [] });
+		const stdout = execSync(
+			isWindows ? `where ${command}` : `command -v ${command}`,
+			{ stdio: [] },
+		);
 		return !!stdout;
 	} catch {
 		return false;
@@ -53,16 +56,20 @@ const find = (dir, file) => {
 };
 
 // Recursively search for a file containing a specific regex in a directory, ignoring specified files
-const findContent = (dir, regex, ignore = []) => {
+const findContent = (regex, ignore = [], dir = "disassembled") => {
 	const files = fs.readdirSync(dir);
 	for (const f of files) {
 		const filePath = path.join(dir, f);
 		if (!ignore.includes(filePath)) {
 			const stat = fs.statSync(filePath);
 			if (stat.isDirectory()) {
-				const res = findContent(filePath, regex, ignore);
-				if (res) return res;
+				if (!["assets", "kotlin", "lib", "META-INF", "res"].includes(f)) {
+					console.log("\x1b[100m[.]\x1b[0m", filePath);
+					const res = findContent(regex, ignore, filePath);
+					if (res) return res;
+				}
 			} else if (fs.readFileSync(filePath, "utf-8").match(regex)) {
+				console.log("\x1b[44m[o]\x1b[0m", filePath);
 				return filePath;
 			}
 		}
@@ -95,6 +102,8 @@ const extractClassName = (file) => file.split(path.sep).pop().split(".")[0];
 
 // Insert content after a line matching a specified regex pattern within a file
 const addAfter = (file, regex, content, n = 1) => {
+	console.log("\x1b[42m[+]\x1b[0m", file);
+
 	const lines = fs.readFileSync(file, "utf-8").split("\n");
 	let i = 0;
 	let line = lines[i];
@@ -112,52 +121,86 @@ const addAfter = (file, regex, content, n = 1) => {
 
 // Add a new host to the list of hosts to apply authorization to
 const authorizeHost = (file) => {
+	console.log("\x1b[42m[+]\x1b[0m", file);
+
 	const lines = fs.readFileSync(file, "utf-8").split("\n");
 	let i = 0;
 	let line = lines[i];
-	while (!line.match(/const-string\/jumbo v0, "spclient.wg.spotify.com"/) && i < lines.length) {
+	while (
+		!line.match(/const-string(\/jumbo)? v[0-9]+, "wgint\.spotify\.net"/) &&
+		i < lines.length
+	) {
 		i++;
 		line = lines[i];
 	}
 
 	if (i === lines.length) throwPatchError();
 
+	const wg_line = line;
+
 	const authorizeHost = [];
-	while (!line.match(/if-nez v0, :cond_1/)) {
+	while (!line.match(/if-nez/)) {
 		authorizeHost.push(line);
 		i++;
 		line = lines[i];
 	}
 	authorizeHost.push(lines[i++]);
 
-	const patchedAuthorizeHost = authorizeHost.join("\n").replace("spclient.wg.spotify.com", server);
+	const patchedAuthorizeHost = authorizeHost
+		.join("\n")
+		.replace("wgint.spotify.net", server);
 
-	if (!addAfter(file, 'const-string/jumbo v0, "spclient.wg.spotify.com"', patchedAuthorizeHost, -1)) throwPatchError();
+	if (!addAfter(file, wg_line, patchedAuthorizeHost, -1)) throwPatchError();
 };
 
 // Patch Spotify Lite
 const patchSpotifyLite = () => {
-	const urlPattern = /const-string v2, "https:\/\/(spclient\.wg\.spotify\.com|lyrics\.natanchiodi\.fr)\/"/;
-	const file = findContent("disassembled", urlPattern);
+	const urlPattern =
+		/const-string v2, "https:\/\/(spclient\.wg\.spotify\.com|lyrics\.natanchiodi\.fr)\/"/;
+	const file = findContent(urlPattern);
 	if (!file) throwPatchError();
 
 	const className = extractClassName(file);
-	const originalConstructor = getMethod(file, "<init>", "public synthetic constructor");
+	const originalConstructor = getMethod(
+		file,
+		"<init>",
+		"public synthetic constructor",
+	);
 	const patchedConstructor = originalConstructor
-		.replace(/(.method public synthetic constructor <init>\(.*)\)/, "$1Ljava/lang/String;)")
-		.replace(/iput p1, p0, Lp\/([^;]+);->a:I/, `iput p1, p0, Lp/${className};->a:I\n    iput-object p2, p0, Lp/${className};->b:Ljava/lang/String;`);
+		.replace(
+			/(.method public synthetic constructor <init>\(.*)\)/,
+			"$1Ljava/lang/String;)",
+		)
+		.replace(
+			/iput p1, p0, Lp\/([^;]+);->a:I/,
+			`iput p1, p0, Lp/${className};->a:I\n    iput-object p2, p0, Lp/${className};->b:Ljava/lang/String;`,
+		);
 
 	if (
-		!addAfter(file, "# instance fields", ".field public final synthetic b:Ljava/lang/String;") ||
-		!addAfter(file, `    iput p1, p0, Lp/${className};->a:I`, `    const-string v0, "https://spclient.wg.spotify.com/"\n    iput-object v0, p0, Lp/${className};->b:Ljava/lang/String;`) ||
+		!addAfter(
+			file,
+			"# instance fields",
+			".field public final synthetic b:Ljava/lang/String;",
+		) ||
+		!addAfter(
+			file,
+			`    iput p1, p0, Lp/${className};->a:I`,
+			`    const-string v0, "https://spclient.wg.spotify.com/"\n    iput-object v0, p0, Lp/${className};->b:Ljava/lang/String;`,
+		) ||
 		!addAfter(file, "# direct methods", patchedConstructor) ||
-		!addAfter(file, `const-string v2, "https://spclient.wg.spotify.com/"`, `    iget-object v2, p0, Lp/${className};->b:Ljava/lang/String;`)
+		!addAfter(
+			file,
+			`const-string v2, "https://spclient.wg.spotify.com/"`,
+			`    iget-object v2, p0, Lp/${className};->b:Ljava/lang/String;`,
+		)
 	) {
 		throwPatchError();
 	}
 
 	//
-	const file2 = findContent("disassembled", new RegExp(/iget-object v3, v0, Lp\/([^;]+);->n1:Lp\/([^;]+);/));
+	const file2 = findContent(
+		new RegExp(/iget-object v3, v0, Lp\/([^;]+);->n1:Lp\/([^;]+);/),
+	);
 	if (!file2) throwPatchError();
 
 	const lines = fs.readFileSync(file2, "utf-8").split("\n");
@@ -176,12 +219,18 @@ const patchSpotifyLite = () => {
 	}
 
 	//
-	const file3 = findContent("disassembled", new RegExp(/"androidLibsLyricsProperties"/));
+	const file3 = findContent(new RegExp(/"androidLibsLyricsProperties"/));
 	if (!file3) throwPatchError();
 
-	fs.writeFileSync(file3, fs.readFileSync(file3, "utf-8").replace(/invoke-interface {v11}/, "invoke-interface {v14}"));
+	fs.writeFileSync(
+		file3,
+		fs
+			.readFileSync(file3, "utf-8")
+			.replace(/invoke-interface {v11}/, "invoke-interface {v14}"),
+	);
 
 	const patched =
+		// biome-ignore lint/style/useTemplate: better readability
 		`    new-instance v12, Lp/${className};\n` +
 		"    const/16 v11, 0x14\n" +
 		`    const-string/jumbo v14, "https://${server}"\n` +
@@ -191,7 +240,10 @@ const patchSpotifyLite = () => {
 			.replace(/iget-object v3, v0/, "iget-object v11, v2")
 			.replace(/new-instance v6/, "new-instance v14")
 			.replace(/const\/16 v9/, "const/16 v13")
-			.replace(/invoke-direct {v6, v3, v2, v9}/, "invoke-direct {v14, v11, v12, v13}")
+			.replace(
+				/invoke-direct {v6, v3, v2, v9}/,
+				"invoke-direct {v14, v11, v12, v13}",
+			)
 			.replace(/invoke-static {v6}/, "invoke-static {v14}")
 			.replace(/move-result-object v3/, "move-result-object v14");
 
@@ -209,78 +261,196 @@ const patchSpotifyLite = () => {
 // Patch Spotify Stock / Amoled
 const patchSpotifyStandard = () => {
 	const retrofitUtilFile = find("disassembled", "RetrofitUtil.smali");
-	if (!retrofitUtilFile) throwPatchError();
+	if (retrofitUtilFile) {
+		// OLDER VERSIONS
+		// Remove old patch
+		let lines = fs.readFileSync(retrofitUtilFile, "utf-8").split("\n");
+		let i = lines.length - 1;
+		let line = lines[i];
+		while (!line.match(/const-string v1, /) && i > 0) {
+			i--;
+			line = lines[i];
+		}
 
-	// Remove old patch
-	let lines = fs.readFileSync(retrofitUtilFile, "utf-8").split("\n");
-	let i = lines.length - 1;
-	let line = lines[i];
-	while (!line.match(/const-string v1, /) && i > 0) {
-		i--;
+		if (i === 0) throwPatchError();
+
+		lines.splice(i, 1);
+		lines.splice(i, 0, '    const-string v1, "spclient.wg.spotify.com"');
+		fs.writeFileSync(retrofitUtilFile, lines.join("\n"));
+
+		// Add new patch
+		const originalRetrofitMethod = getMethod(
+			retrofitUtilFile,
+			"prepareRetrofit",
+		);
+		const patchedRetrofitMethod = originalRetrofitMethod
+			.replace(
+				/(.method public static prepareRetrofit\(.*)\)/,
+				"$1Ljava/lang/String;)",
+			)
+			.replace(
+				/invoke-static {p0, v0, p1, v1, p2}/,
+				"invoke-static {p0, v0, p1, p3, p2}",
+			);
+
+		fs.appendFileSync(retrofitUtilFile, patchedRetrofitMethod);
+
+		// Patch class using RetrofitUtil
+		const classFile = findContent(new RegExp(/"prepareRetrofit\(/));
+		if (!classFile) throwPatchError();
+
+		const className = extractClassName(classFile);
+		const originalMethod = getMethod(classFile, "b");
+		const patchedMethod = originalMethod
+			.replace(/(.method public static b\(.*)\)/, "$1Ljava/lang/String;)")
+			.replace(/invoke-static {p0, p1, p2}/, "invoke-static {p0, p1, p2, p3}")
+			.replace(/(prepareRetrofit\(.*)\)/, "$1Ljava/lang/String;)");
+
+		fs.appendFileSync(classFile, patchedMethod);
+
+		// Patch file using this class
+		const match = new RegExp(`Lp/${className};->b\\((.*)\\)`);
+		const file = findContent(match, [classFile]);
+		if (!file) throwPatchError();
+
+		lines = fs.readFileSync(file, "utf-8").split("\n");
+		i = 0;
 		line = lines[i];
+		while (!line.match(match) && i < lines.length) {
+			i++;
+			line = lines[i];
+		}
+
+		if (i === lines.length) throwPatchError();
+
+		lines.splice(i, 1);
+		lines.splice(i, 0, `    const-string v5, "${server}"\n`);
+		lines.splice(
+			i + 1,
+			0,
+			line.replace("}", ", v5}").replace(";)", ";Ljava/lang/String;)"),
+		);
+
+		fs.writeFileSync(file, lines.join("\n"));
+
+		// Authorize new host
+		const oauthHelperFile = find("disassembled", "OAuthHelper.smali");
+		const webgateHelperFile = find("disassembled", "WebgateHelper.smali");
+		if (!oauthHelperFile || !webgateHelperFile) throwPatchError();
+
+		authorizeHost(oauthHelperFile);
+		authorizeHost(webgateHelperFile);
+	} else {
+		// NEWER VERSIONS
+
+		let hostFile;
+		let lyricsEndpointFile;
+		let oauthHelperFile;
+		let webgateHelperFile;
+
+		function search(dir = "disassembled") {
+			const files = fs.readdirSync(dir);
+			for (const f of files) {
+				if (
+					hostFile &&
+					lyricsEndpointFile &&
+					oauthHelperFile &&
+					webgateHelperFile
+				)
+					break;
+
+				const filePath = path.join(dir, f);
+				const stat = fs.statSync(filePath);
+				if (stat.isDirectory()) {
+					if (!["assets", "kotlin", "lib", "META-INF", "res"].includes(f)) {
+						console.log("\x1b[100m[.]\x1b[0m", filePath);
+						search(filePath);
+					}
+				} else {
+					const content = fs.readFileSync(filePath, "utf-8");
+					let found = true;
+
+					if (content.match(/"client == null"/)) hostFile = filePath;
+					else if (content.match(/color-lyrics/)) lyricsEndpointFile = filePath;
+					else if (
+						content.match(/const-string\/jumbo v1, "wgint\.spotify\.net"/)
+					)
+						oauthHelperFile = filePath;
+					else if (
+						content.match(/const-string\/jumbo v2, "wgint\.spotify\.net"/)
+					)
+						webgateHelperFile = filePath;
+					else found = false;
+
+					if (found) console.log("\x1b[44m[o]\x1b[0m", filePath);
+				}
+			}
+		}
+
+		search();
+
+		if (
+			!hostFile ||
+			!lyricsEndpointFile ||
+			!oauthHelperFile ||
+			!webgateHelperFile
+		)
+			throwPatchError();
+
+		// Create new patched file
+		const hostFileClassName = extractClassName(hostFile);
+		const latestSmaliClassesFolder = path.join(
+			fs
+				.readdirSync("disassembled")
+				.filter((f) => f.startsWith("smali_classes"))
+				.reduce((a, b) =>
+					Number.parseInt(a.split("smali_classes")[1]) >
+					Number.parseInt(b.split("smali_classes")[1])
+						? a
+						: b,
+				),
+			"p",
+		);
+		const lyricsPatchFile = path.join(
+			"disassembled",
+			latestSmaliClassesFolder,
+			"lyricsPatch.smali",
+		);
+		const lyricsPatchContent = fs
+			.readFileSync(hostFile, "utf-8")
+			.replaceAll(hostFileClassName, "lyricsPatch")
+			.replace("spclient.wg.spotify.com", server);
+		fs.writeFileSync(lyricsPatchFile, lyricsPatchContent);
+
+		// Patch file using this class
+		const lyricsEndpointClassName = extractClassName(lyricsEndpointFile);
+
+		const fileToPatch = findContent(
+			new RegExp(
+				`(?=.*${hostFileClassName})(?=.*${lyricsEndpointClassName})`,
+				"s",
+			),
+			[],
+			path.join("disassembled", "smali_classes5", "p"),
+		);
+		if (!fileToPatch) throwPatchError();
+		fs.writeFileSync(
+			fileToPatch,
+			fs
+				.readFileSync(fileToPatch, "utf-8")
+				.replaceAll(hostFileClassName, "lyricsPatch"),
+		);
+
+		// Authorize new host
+		authorizeHost(oauthHelperFile);
+		authorizeHost(webgateHelperFile);
 	}
-
-	if (i === 0) throwPatchError();
-
-	lines.splice(i, 1);
-	lines.splice(i, 0, '    const-string v1, "spclient.wg.spotify.com"');
-	fs.writeFileSync(retrofitUtilFile, lines.join("\n"));
-
-	// Add new patch
-	const originalRetrofitMethod = getMethod(retrofitUtilFile, "prepareRetrofit");
-	const patchedRetrofitMethod = originalRetrofitMethod
-		.replace(/(.method public static prepareRetrofit\(.*)\)/, "$1Ljava/lang/String;)")
-		.replace(/invoke-static {p0, v0, p1, v1, p2}/, "invoke-static {p0, v0, p1, p3, p2}");
-
-	fs.appendFileSync(retrofitUtilFile, patchedRetrofitMethod);
-
-	// Patch class using RetrofitUtil
-	const classFile = findContent("disassembled", new RegExp(/"prepareRetrofit\(/));
-	if (!classFile) throwPatchError();
-
-	const className = extractClassName(classFile);
-	const originalMethod = getMethod(classFile, "b");
-	const patchedMethod = originalMethod
-		.replace(/(.method public static b\(.*)\)/, "$1Ljava/lang/String;)")
-		.replace(/invoke-static {p0, p1, p2}/, "invoke-static {p0, p1, p2, p3}")
-		.replace(/(prepareRetrofit\(.*)\)/, "$1Ljava/lang/String;)");
-
-	fs.appendFileSync(classFile, patchedMethod);
-
-	// Patch file using this class
-	const match = new RegExp(`Lp/${className};->b\\((.*)\\)`);
-	const file = findContent("disassembled", match, [classFile]);
-	if (!file) throwPatchError();
-
-	lines = fs.readFileSync(file, "utf-8").split("\n");
-	i = 0;
-	line = lines[i];
-	while (!line.match(match) && i < lines.length) {
-		i++;
-		line = lines[i];
-	}
-
-	if (i === lines.length) throwPatchError();
-
-	lines.splice(i, 1);
-	lines.splice(i, 0, `    const-string v5, "${server}"\n`);
-	lines.splice(i + 1, 0, line.replace("}", ", v5}").replace(";)", ";Ljava/lang/String;)"));
-
-	fs.writeFileSync(file, lines.join("\n"));
-
-	// Authorize new host
-	const oauthHelperFile = find("disassembled", "OAuthHelper.smali");
-	const webgateHelperFile = find("disassembled", "WebgateHelper.smali");
-	if (!oauthHelperFile || !webgateHelperFile) throwPatchError();
-
-	authorizeHost(oauthHelperFile);
-	authorizeHost(webgateHelperFile);
 };
 
 // Fetch command-line arguments for server, name, and apk file paths
 const args = process.argv.slice(2);
+const keystore = { file: null, password: null };
 let server = "lyrics.natanchiodi.fr";
-let keystore = { file: null, password: null };
 let apk;
 
 for (let i = 0; i < args.length; i++) {
@@ -307,12 +477,16 @@ if (keystore.file && !fs.existsSync(keystore.file)) {
 }
 
 if (keystore.file && !keystore.password) {
-	console.error("Please provide a password for the keystore file by using the --ks-pass flag.");
+	console.error(
+		"Please provide a password for the keystore file by using the --ks-pass flag.",
+	);
 	process.exit(1);
 }
 
 if (keystore.password && !keystore.file) {
-	console.error("Please provide a path to the keystore file by using the --ks-file flag.");
+	console.error(
+		"Please provide a path to the keystore file by using the --ks-file flag.",
+	);
 	process.exit(1);
 }
 
@@ -340,8 +514,14 @@ if (apk && !fs.existsSync(apk)) {
 
 	// Download essential tools
 	console.log("Downloading required tools...");
-	await download("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar", "apktool.jar");
-	await download(`https://dl.google.com/android/repository/build-tools_r34-${isWindows ? "windows" : "linux"}.zip`, "build-tools.zip");
+	await download(
+		"https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar",
+		"apktool.jar",
+	);
+	await download(
+		`https://dl.google.com/android/repository/build-tools_r34-${isWindows ? "windows" : "linux"}.zip`,
+		"build-tools.zip",
+	);
 
 	// Extract and set permissions for downloaded tools
 	execSync("jar xvf build-tools.zip");
@@ -352,13 +532,21 @@ if (apk && !fs.existsSync(apk)) {
 	// Download latest xManager release if no APK is provided
 	if (!apk) {
 		console.log("No APK provided. Fetching latest xManager release...");
-		await download("https://github.com/Team-xManager/xManager/releases/latest/download/xManager.apk", "xManager.apk");
+		await download(
+			"https://github.com/Team-xManager/xManager/releases/latest/download/xManager.apk",
+			"xManager.apk",
+		);
 		execSync("java -jar apktool.jar d xManager.apk -o xManager --no-src", {
 			stdio: "ignore",
 		});
 
-		const stringsXml = fs.readFileSync(path.join("xManager", "res", "values", "strings.xml"), "utf-8");
-		const urlMatch = stringsXml.match(/https:\/\/gist\.githubusercontent\.com\/[^<]*/);
+		const stringsXml = fs.readFileSync(
+			path.join("xManager", "res", "values", "strings.xml"),
+			"utf-8",
+		);
+		const urlMatch = stringsXml.match(
+			/https:\/\/gist\.githubusercontent\.com\/[^<]*/,
+		);
 		const url = urlMatch ? urlMatch[0] : null;
 		if (!url) {
 			console.error("Failed to fetch xManager releases.");
@@ -402,7 +590,9 @@ if (apk && !fs.existsSync(apk)) {
 		const mirror = versions[alt][versions[alt].length - 1].Mirror;
 
 		if (!mirror.includes("fileport")) {
-			console.error("An error occurred while downloading the APK. Please download it manually.");
+			console.error(
+				"An error occurred while downloading the APK. Please download it manually.",
+			);
 			console.log(`Download link: ${mirror}`);
 			process.exit(1);
 		}
@@ -417,11 +607,17 @@ if (apk && !fs.existsSync(apk)) {
 
 	// Patch Spotify
 	console.log("Patching Spotify...");
-	execSync("java -jar apktool.jar d input.apk -o disassembled --no-res --only-main-classes", {
-		stdio: "ignore",
-	});
+	execSync(
+		"java -jar apktool.jar d input.apk -o disassembled --only-main-classes",
+		{
+			stdio: "ignore",
+		},
+	);
 
-	const manifestContent = fs.readFileSync(path.join("disassembled", "AndroidManifest.xml"), "utf-8");
+	const manifestContent = fs.readFileSync(
+		path.join("disassembled", "AndroidManifest.xml"),
+		"utf-8",
+	);
 
 	if (!manifestContent.match(/com\.spotify\.(music|lite)/)) {
 		console.error("The provided APK is not a Spotify APK.");
@@ -441,7 +637,9 @@ if (apk && !fs.existsSync(apk)) {
 	execSync("java -jar apktool.jar b disassembled -o output.apk", {
 		stdio: "ignore",
 	});
-	execSync(`.${path.sep}build-tools${path.sep}zipalign${isWindows ? ".exe" : ""} -p -f 4 output.apk aligned.apk`);
+	execSync(
+		`.${path.sep}build-tools${path.sep}zipalign${isWindows ? ".exe" : ""} -p -f 4 output.apk aligned.apk`,
+	);
 
 	if (!fs.existsSync("aligned.apk")) {
 		console.error("An error occurred while building the patched APK.");
@@ -451,18 +649,27 @@ if (apk && !fs.existsSync(apk)) {
 	// Sign APK
 	console.log("Signing APK...");
 	if (keystore.file && keystore.password) {
-		execSync(`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`, {
-			stdio: "ignore",
-		});
+		execSync(
+			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`,
+			{
+				stdio: "ignore",
+			},
+		);
 	} else {
 		const name = os.userInfo().username;
 		const password = crypto.randomBytes(32).toString("base64");
-		execSync(`keytool -genkey -v -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias "${name}" -storepass ${password} -keypass ${password} -dname "CN=${name}"`, {
-			stdio: "ignore",
-		});
-		execSync(`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks keystore.jks --ks-pass "pass:${password}" --out ..${path.sep}Patched.apk aligned.apk`, {
-			stdio: "ignore",
-		});
+		execSync(
+			`keytool -genkey -v -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias "${name}" -storepass ${password} -keypass ${password} -dname "CN=${name}"`,
+			{
+				stdio: "ignore",
+			},
+		);
+		execSync(
+			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks keystore.jks --ks-pass "pass:${password}" --out ..${path.sep}Patched.apk aligned.apk`,
+			{
+				stdio: "ignore",
+			},
+		);
 	}
 
 	// Cleanup
