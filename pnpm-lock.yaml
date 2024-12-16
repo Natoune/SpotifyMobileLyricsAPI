@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@bufbuild/protobuf':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: ^2.2.3
+        version: 2.2.3
       '@vercel/node':
         specifier: ^5.0.0
         version: 5.0.0
@@ -37,8 +37,8 @@ importers:
         specifier: ^1.47.2
         version: 1.47.2
       '@bufbuild/protoc-gen-es':
-        specifier: ^2.2.2
-        version: 2.2.2(@bufbuild/protobuf@2.2.2)
+        specifier: ^2.2.3
+        version: 2.2.3(@bufbuild/protobuf@2.2.3)
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -98,21 +98,21 @@ packages:
     engines: {node: '>=12'}
     hasBin: true
 
-  '@bufbuild/protobuf@2.2.2':
-    resolution: {integrity: sha512-UNtPCbrwrenpmrXuRwn9jYpPoweNXj8X5sMvYgsqYyaH8jQ6LfUJSk3dJLnBK+6sfYPrF4iAIo5sd5HQ+tg75A==}
+  '@bufbuild/protobuf@2.2.3':
+    resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
 
-  '@bufbuild/protoc-gen-es@2.2.2':
-    resolution: {integrity: sha512-dQNfX2c6srAevuT0NR+C5OrNp+dlebIhR2R/GQOhJykCMJB1GB0jBnniSEWC+6YIUGFGLXgSyYbtNPaxZGPM0Q==}
+  '@bufbuild/protoc-gen-es@2.2.3':
+    resolution: {integrity: sha512-hdhIV9NmwXXy24DcbnArauv6L5Dv2PjkO9gz2DUhiZ9HPRpP+rmpT8zo5LohjJiuA7YIQGGKKWSKpRg+xcdLSQ==}
     engines: {node: '>=14'}
     hasBin: true
     peerDependencies:
-      '@bufbuild/protobuf': 2.2.2
+      '@bufbuild/protobuf': 2.2.3
     peerDependenciesMeta:
       '@bufbuild/protobuf':
         optional: true
 
-  '@bufbuild/protoplugin@2.2.2':
-    resolution: {integrity: sha512-EKKrjBsA/F2l502PPWfmvx//qRJpOXpyDhwFOYSbwRYfqzEUuuNSb1A+YGE7iDxoEqxwo+len/CJny29iP1ESg==}
+  '@bufbuild/protoplugin@2.2.3':
+    resolution: {integrity: sha512-UsV7mj6NJTZrqIYJK+jNFnnj5tOS7wgNXKyMjebFEpf+OX6pfXE+nx+QPjumOfu4GxdVPfEDnKuwISgqlXSQqw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -932,19 +932,19 @@ snapshots:
       '@bufbuild/buf-win32-arm64': 1.47.2
       '@bufbuild/buf-win32-x64': 1.47.2
 
-  '@bufbuild/protobuf@2.2.2': {}
+  '@bufbuild/protobuf@2.2.3': {}
 
-  '@bufbuild/protoc-gen-es@2.2.2(@bufbuild/protobuf@2.2.2)':
+  '@bufbuild/protoc-gen-es@2.2.3(@bufbuild/protobuf@2.2.3)':
     dependencies:
-      '@bufbuild/protoplugin': 2.2.2
+      '@bufbuild/protoplugin': 2.2.3
     optionalDependencies:
-      '@bufbuild/protobuf': 2.2.2
+      '@bufbuild/protobuf': 2.2.3
     transitivePeerDependencies:
       - supports-color
 
-  '@bufbuild/protoplugin@2.2.2':
+  '@bufbuild/protoplugin@2.2.3':
     dependencies:
-      '@bufbuild/protobuf': 2.2.2
+      '@bufbuild/protobuf': 2.2.3
       '@typescript/vfs': 1.6.0(typescript@5.4.5)
       typescript: 5.4.5
     transitivePeerDependencies:
