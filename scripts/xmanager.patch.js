@@ -497,7 +497,8 @@ if (apk && !fs.existsSync(apk)) {
 
 (async () => {
 	// Check if necessary dependencies are available
-	const dependencies = ["java", "keytool", "jar"];
+	const dependencies = ["java", "jar"];
+	if (!keystore.file) dependencies.push("keytool");
 	for (const dep of dependencies) {
 		if (!exists(dep)) {
 			console.error(`"${dep}" not found.`);
