@@ -24,7 +24,7 @@
     "redis": "^4.7.0"
   },
   "devDependencies": {
-    "@bufbuild/buf": "^1.47.2",
+    "@bufbuild/buf": "^1.48.0",
     "@bufbuild/protoc-gen-es": "^2.2.3",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.10.2",
