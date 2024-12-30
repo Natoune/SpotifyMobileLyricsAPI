@@ -8,8 +8,10 @@ const { Readable } = require("node:stream");
 
 // HELPERS
 
-// Check if a command exists in the current environment
 const isWindows = process.platform === "win32";
+const isMac = process.platform === "darwin";
+
+// Check if a command exists in the current environment
 const exists = (command) => {
 	try {
 		const stdout = execSync(
@@ -520,7 +522,7 @@ if (apk && !fs.existsSync(apk)) {
 		"apktool.jar",
 	);
 	await download(
-		`https://dl.google.com/android/repository/build-tools_r34-${isWindows ? "windows" : "linux"}.zip`,
+		`https://dl.google.com/android/repository/build-tools_r34-${isWindows ? "windows" : isMac ? "macosx" : "linux"}.zip`,
 		"build-tools.zip",
 	);
 
