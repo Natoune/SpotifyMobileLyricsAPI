@@ -653,7 +653,7 @@ if (apk && !fs.existsSync(apk)) {
 	console.log("Signing APK...");
 	if (keystore.file && keystore.password) {
 		execSync(
-			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`,
+			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "..${path.sep}${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`,
 			{
 				stdio: "ignore",
 			},
