@@ -21,7 +21,8 @@
     "h3": "^1.13.0",
     "h3-compression": "^0.3.2",
     "languagedetect": "^2.0.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.47.2",

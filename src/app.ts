@@ -2,6 +2,7 @@ import { createApp, createRouter } from "h3";
 import { useCompressionStream } from "h3-compression";
 import lyrics from "./functions/lyrics";
 import proxy from "./functions/proxy";
+import { initDatabase } from "./utils";
 
 export const app = createApp({
 	onBeforeResponse: useCompressionStream,
@@ -64,6 +65,8 @@ export const app = createApp({
 		} catch {}
 	},
 });
+
+initDatabase();
 
 const router = createRouter();
 app.use(router);

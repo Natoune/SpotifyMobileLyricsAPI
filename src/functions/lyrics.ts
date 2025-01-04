@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, getQuery, setHeader } from "h3";
-import { fetchLyrics } from "../utils";
+import { fetchLyrics } from "../fetchers";
 
 export default {
 	get: defineEventHandler(async (event) => {
