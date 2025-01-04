@@ -25,8 +25,6 @@ async function getLyricsFromDB(track_id: string) {
 			(err, lyrics: any) => {
 				if (err || !lyrics) return null;
 
-				console.log(lyrics);
-
 				const lyrics_obj = {
 					lyrics: {
 						syncType: lyrics.s === 1 ? 1 : undefined,
@@ -85,28 +83,25 @@ async function getSpotifyLyrics(id: string, market: string) {
 		return null;
 
 	if (useDatabase) {
-		try {
-			database.run(
-				"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
-				[
-					id,
-					lyrics.lyrics.syncType ? 1 : 0,
-					lyrics.lyrics.lines
-						.map(
-							(line) =>
-								`${line.startTimeMs}.${Buffer.from(line.words).toString(
-									"base64",
-								)}.${line.endTimeMs || 0}`,
-						)
-						.join("|"),
-					lyrics.colors.background,
-					lyrics.colors.text,
-					lyrics.colors.highlightText,
-				],
-			);
-		} catch {
-			console.error("Failed to store lyrics in database");
-		}
+		database.run(
+			"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
+			[
+				id,
+				lyrics.lyrics.syncType ? 1 : 0,
+				lyrics.lyrics.lines
+					.map(
+						(line) =>
+							`${line.startTimeMs}.${Buffer.from(line.words).toString(
+								"base64",
+							)}.${line.endTimeMs || 0}`,
+					)
+					.join("|"),
+				lyrics.colors.background,
+				lyrics.colors.text,
+				lyrics.colors.highlightText,
+			],
+			(err) => {},
+		);
 	}
 
 	return lyrics;
