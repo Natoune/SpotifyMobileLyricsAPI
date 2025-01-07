@@ -20,7 +20,7 @@ async function getLyricsFromDB(track_id: string) {
 	if (!useDatabase) return null;
 
 	try {
-		database.get(
+		database!.get(
 			`SELECT * FROM l WHERE i = '${track_id}' LIMIT 1`,
 			(err, lyrics: any) => {
 				if (err || !lyrics) return null;
@@ -83,7 +83,7 @@ async function getSpotifyLyrics(id: string, market: string) {
 		return null;
 
 	if (useDatabase) {
-		database.run(
+		database!.run(
 			"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
 			[
 				id,
