@@ -7,7 +7,7 @@ import { createClient } from "redis";
 import { Database } from "sqlite3";
 
 export const useDatabase = process.env.DATABASE === "true";
-export const database = useDatabase ? new Database(join(__dirname, "..", "lyrics.db")) : null;
+export const database = useDatabase ? new Database(join(__dirname, "..", "lyrics.db")) : undefined;
 
 let redisClient: ReturnType<typeof createClient>;
 
@@ -27,8 +27,8 @@ export async function setSpotifyToken(token: any) {
 export async function initDatabase() {
 	if (!useDatabase) return;
 
-	database.serialize(() => {
-		database.run(
+	database!.serialize(() => {
+		database!.run(
 			"CREATE TABLE IF NOT EXISTS l (i TEXT PRIMARY KEY, s INTEGER, l TEXT, b INTEGER, t INTEGER, h INTEGER)",
 		);
 	});
