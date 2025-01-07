@@ -7,7 +7,7 @@ import { createClient } from "redis";
 import { Database } from "sqlite3";
 
 export const useDatabase = process.env.DATABASE === "true";
-export const database = new Database(join(__dirname, "..", "lyrics.db"));
+export const database = useDatabase ? new Database(join(__dirname, "..", "lyrics.db")) : null;
 
 let redisClient: ReturnType<typeof createClient>;
 
