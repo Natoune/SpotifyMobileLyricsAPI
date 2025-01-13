@@ -21,11 +21,11 @@ importers:
         specifier: ^16.4.7
         version: 16.4.7
       h3:
-        specifier: ^1.13.0
-        version: 1.13.0
+        specifier: ^1.13.1
+        version: 1.13.1
       h3-compression:
         specifier: ^0.3.2
-        version: 0.3.2(h3@1.13.0)
+        version: 0.3.2(h3@1.13.1)
       languagedetect:
         specifier: ^2.0.0
         version: 2.0.0
@@ -666,8 +666,8 @@ packages:
     peerDependencies:
       h3: ^1.6.0
 
-  h3@1.13.0:
-    resolution: {integrity: sha512-vFEAu/yf8UMUcB4s43OaDaigcqpQd14yanmOsn+NcRX3/guSKncyE2rOYhq8RIchgJrPSs/QiIddnTTR1ddiAg==}
+  h3@1.13.1:
+    resolution: {integrity: sha512-u/z6Z4YY+ANZ05cRRfsFJadTBrNA6e3jxdU+AN5UCbZSZEUwgHiwjvUEe0k1NoQmAvQmETwr+xB5jd7mhCJuIQ==}
 
   has-unicode@2.0.1:
     resolution: {integrity: sha512-8Rf9Y83NBReMnx0gFzA8JImQACstCYWUplepDa9xprwwtmgEZUF0h/i5xSA625zB/I37EtrswSST6OXxwaaIJQ==}
@@ -1779,11 +1779,11 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  h3-compression@0.3.2(h3@1.13.0):
+  h3-compression@0.3.2(h3@1.13.1):
     dependencies:
-      h3: 1.13.0
+      h3: 1.13.1
 
-  h3@1.13.0:
+  h3@1.13.1:
     dependencies:
       cookie-es: 1.2.2
       crossws: 0.3.1
