@@ -58,9 +58,17 @@ const find = (dir, file) => {
 };
 
 // Recursively search for a file containing a specific regex in a directory, ignoring specified files
-const findContent = (regex, ignore = [], dir = "disassembled") => {
+const findContent = (regex, ignore = [], dir = "disassembled", showPerc = false) => {
 	const files = fs.readdirSync(dir);
+	if (showPerc) process.stdout.write("Searching file to patch... 0%");
 	for (const f of files) {
+		if (showPerc) {
+			const perc = Math.round((files.indexOf(f) / files.length) * 100);
+			process.stdout.clearLine(0);
+			process.stdout.cursorTo(0);
+			process.stdout.write(`Searching file to patch... ${perc}% (${f})`);
+		}
+
 		const filePath = path.join(dir, f);
 		if (!ignore.includes(filePath)) {
 			const stat = fs.statSync(filePath);
@@ -265,22 +273,7 @@ const patchSpotifyStandard = () => {
 	const retrofitUtilFile = find("disassembled", "RetrofitUtil.smali");
 	if (retrofitUtilFile) {
 		// OLDER VERSIONS
-		// Remove old patch
-		let lines = fs.readFileSync(retrofitUtilFile, "utf-8").split("\n");
-		let i = lines.length - 1;
-		let line = lines[i];
-		while (!line.match(/const-string v1, /) && i > 0) {
-			i--;
-			line = lines[i];
-		}
 
-		if (i === 0) throwPatchError();
-
-		lines.splice(i, 1);
-		lines.splice(i, 0, '    const-string v1, "spclient.wg.spotify.com"');
-		fs.writeFileSync(retrofitUtilFile, lines.join("\n"));
-
-		// Add new patch
 		const originalRetrofitMethod = getMethod(
 			retrofitUtilFile,
 			"prepareRetrofit",
@@ -375,11 +368,11 @@ const patchSpotifyStandard = () => {
 					if (content.match(/"client == null"/)) hostFile = filePath;
 					else if (content.match(/color-lyrics/)) lyricsEndpointFile = filePath;
 					else if (
-						content.match(/const-string\/jumbo v1, "wgint\.spotify\.net"/)
+						content.match(/const-string(\/jumbo)? v1, "wgint\.spotify\.net"/)
 					)
 						oauthHelperFile = filePath;
 					else if (
-						content.match(/const-string\/jumbo v2, "wgint\.spotify\.net"/)
+						content.match(/const-string(\/jumbo)? v2, "wgint\.spotify\.net"/)
 					)
 						webgateHelperFile = filePath;
 					else found = false;
@@ -434,6 +427,7 @@ const patchSpotifyStandard = () => {
 			),
 			[],
 			path.join("disassembled", "smali_classes5", "p"),
+			true,
 		);
 		if (!fileToPatch) throwPatchError();
 		fs.writeFileSync(
@@ -653,7 +647,7 @@ if (apk && !fs.existsSync(apk)) {
 	console.log("Signing APK...");
 	if (keystore.file && keystore.password) {
 		execSync(
-			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "..${path.sep}${keystore.file}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`,
+			`.${path.sep}build-tools${path.sep}apksigner${isWindows ? ".bat" : ""} sign --ks "${path.resolve(keystore.file)}" --ks-pass "pass:${keystore.password}" --out ..${path.sep}Patched.apk aligned.apk`,
 			{
 				stdio: "ignore",
 			},
