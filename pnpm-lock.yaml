@@ -21,11 +21,11 @@ importers:
         specifier: ^16.4.7
         version: 16.4.7
       h3:
-        specifier: ^1.15.0
-        version: 1.15.0
+        specifier: ^1.15.1
+        version: 1.15.1
       h3-compression:
         specifier: ^0.3.2
-        version: 0.3.2(h3@1.15.0)
+        version: 0.3.2(h3@1.15.1)
       languagedetect:
         specifier: ^2.0.0
         version: 2.0.0
@@ -456,8 +456,8 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
-  crossws@0.3.3:
-    resolution: {integrity: sha512-/71DJT3xJlqSnBr83uGJesmVHSzZEvgxHt/fIKxBAAngqMHmnBWQNxCphVxxJ2XL3xleu5+hJD6IQ3TglBedcw==}
+  crossws@0.3.4:
+    resolution: {integrity: sha512-uj0O1ETYX1Bh6uSgktfPvwDiPYGQ3aI4qVsaC/LWpkIzGj1nUYm5FK3K+t11oOlpN01lGbprFCH4wBlKdJjVgw==}
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
@@ -738,8 +738,8 @@ packages:
     peerDependencies:
       h3: ^1.6.0
 
-  h3@1.15.0:
-    resolution: {integrity: sha512-OsjX4JW8J4XGgCgEcad20pepFQWnuKH+OwkCJjogF3C+9AZ1iYdtB4hX6vAb5DskBiu5ljEXqApINjR8CqoCMQ==}
+  h3@1.15.1:
+    resolution: {integrity: sha512-+ORaOBttdUm1E2Uu/obAyCguiI7MbBvsLTndc3gyK3zU+SYLoZXlyCP9Xgy0gikkGufFLTZXCXD6+4BsufnmHA==}
 
   has-unicode@2.0.1:
     resolution: {integrity: sha512-8Rf9Y83NBReMnx0gFzA8JImQACstCYWUplepDa9xprwwtmgEZUF0h/i5xSA625zB/I37EtrswSST6OXxwaaIJQ==}
@@ -980,9 +980,6 @@ packages:
     resolution: {integrity: sha512-/vBvz5Jfr9dT/aFWd0FIRf+T/Q2WBsLENygUaFUqstqsycmZAP/t5BvFJTK0viFmSUxiUKTUplWy5vt+rvKIxg==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     deprecated: This package is no longer supported.
-
-  ohash@1.1.4:
-    resolution: {integrity: sha512-FlDryZAahJmEF3VR3w1KogSEdWX3WhA5GPakFx4J81kEAiHyLMpdLLElS8n8dfNadMgAne/MywcvmogzscVt4g==}
 
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
@@ -1750,7 +1747,7 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  crossws@0.3.3:
+  crossws@0.3.4:
     dependencies:
       uncrypto: 0.1.3
 
@@ -1980,19 +1977,18 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  h3-compression@0.3.2(h3@1.15.0):
+  h3-compression@0.3.2(h3@1.15.1):
     dependencies:
-      h3: 1.15.0
+      h3: 1.15.1
 
-  h3@1.15.0:
+  h3@1.15.1:
     dependencies:
       cookie-es: 1.2.2
-      crossws: 0.3.3
+      crossws: 0.3.4
       defu: 6.1.4
       destr: 2.0.3
       iron-webcrypto: 1.2.1
       node-mock-http: 1.0.0
-      ohash: 1.1.4
       radix3: 1.1.2
       ufo: 1.5.4
       uncrypto: 0.1.3
@@ -2260,8 +2256,6 @@ snapshots:
       gauge: 4.0.4
       set-blocking: 2.0.0
     optional: true
-
-  ohash@1.1.4: {}
 
   once@1.4.0:
     dependencies:
