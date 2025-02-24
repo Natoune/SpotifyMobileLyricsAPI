@@ -12,8 +12,8 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
       '@vercel/node':
-        specifier: ^5.1.7
-        version: 5.1.7(encoding@0.1.13)
+        specifier: ^5.1.8
+        version: 5.1.8(encoding@0.1.13)
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
@@ -272,8 +272,8 @@ packages:
     peerDependencies:
       typescript: '*'
 
-  '@vercel/build-utils@10.1.0':
-    resolution: {integrity: sha512-JPff3brfZx0mTl+0Cmzz220MmnTSYnBgVqVvT6a8lVALJHr75sKaNxZy0/hWZe8ev+w2JwLGMmJwP2TKHtKeHA==}
+  '@vercel/build-utils@10.2.0':
+    resolution: {integrity: sha512-NBEPnxVA23RwHNqYk1Afpoz7sbZAmVJccY9L48LQlymDBX6lP+JTrYSXGTjUKXYIH3BJsLCe/9U3kUJ7Touk7Q==}
 
   '@vercel/error-utils@2.0.3':
     resolution: {integrity: sha512-CqC01WZxbLUxoiVdh9B/poPbNpY9U+tO1N9oWHwTl5YAZxcqXmmWJ8KNMFItJCUUWdY3J3xv8LvAuQv2KZ5YdQ==}
@@ -283,8 +283,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  '@vercel/node@5.1.7':
-    resolution: {integrity: sha512-aOfpTss3DBeqTCxZHNUgB6ckDp2DUDV9+nuW0wf5sToHLmeMzlUGNwY48CPSly1CFyi5jYE4fyfn9dBaAustWQ==}
+  '@vercel/node@5.1.8':
+    resolution: {integrity: sha512-fID4QklP0yDv8Gvv0EZWmsacNhSTyoS0f4mU4HA2pwY4847wpGSFrD5tGFsOhf+3hgGAWbwsJ+dA799jCEcyiQ==}
 
   '@vercel/static-config@3.0.0':
     resolution: {integrity: sha512-2qtvcBJ1bGY0dYGYh3iM7yGKkk971FujLEDXzuW5wcZsPr1GSEjO/w2iSr3qve6nDDtBImsGoDEnus5FI4+fIw==}
@@ -1523,7 +1523,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vercel/build-utils@10.1.0': {}
+  '@vercel/build-utils@10.2.0': {}
 
   '@vercel/error-utils@2.0.3': {}
 
@@ -1546,13 +1546,13 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vercel/node@5.1.7(encoding@0.1.13)':
+  '@vercel/node@5.1.8(encoding@0.1.13)':
     dependencies:
       '@edge-runtime/node-utils': 2.3.0
       '@edge-runtime/primitives': 4.1.0
       '@edge-runtime/vm': 3.2.0
       '@types/node': 16.18.11
-      '@vercel/build-utils': 10.1.0
+      '@vercel/build-utils': 10.2.0
       '@vercel/error-utils': 2.0.3
       '@vercel/nft': 0.27.10(encoding@0.1.13)
       '@vercel/static-config': 3.0.0
