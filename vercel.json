@@ -5,7 +5,8 @@
     "outputDirectory": "api",
     "functions": {
         "api/vercel.ts": {
-            "runtime": "@vercel/node@3.2.14"
+            "runtime": "@vercel/node@3.2.14",
+            "maxDuration": 60
         }
     },
     "rewrites": [
