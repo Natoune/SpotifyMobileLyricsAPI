@@ -6,7 +6,7 @@ export default {
 		const track_id = event.context.params?.id;
 		if (!track_id) throw createError({ status: 400 });
 
-		const path_match = event.path.match(/\/track\/[^/]+\/image\/(.+)$/);
+		const path_match = event.path.match(/\/image\/(.+)$/);
 		const image_url = path_match ? decodeURIComponent(path_match[1]) : null;
 
 		const query = getQuery(event);
