@@ -54,9 +54,13 @@ async function getLyricsFromDB(track_id: string) {
 	}
 }
 
-async function getSpotifyLyrics(id: string, market: string) {
+async function getSpotifyLyrics(id: string, market: string, image_url: string | null = null) {
+	const url = image_url 
+		? `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}/image/${encodeURIComponent(image_url)}?format=json&vocalRemoval=false&market=${market}`
+		: `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`;
+	
 	const lyrics = await fetch(
-		`https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`,
+		url,
 		{
 			headers: {
 				"app-platform": "WebPlayer",
@@ -246,6 +250,7 @@ export async function fetchLyrics(
 	market: string,
 	setEnv: Record<string, any>,
 	authorization: string | null,
+	image_url: string | null = null
 ) {
 	env = setEnv;
 
@@ -257,7 +262,7 @@ export async function fetchLyrics(
 
 	const lyricsFetchers = [
 		() => getLyricsFromDB(track_id),
-		() => getSpotifyLyrics(track_id, market),
+		() => getSpotifyLyrics(track_id, market, image_url),
 		() => getNeteaseLyrics(track_id),
 		() => getLRCLibLyrics(track_id),
 	];

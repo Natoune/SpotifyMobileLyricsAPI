@@ -6,6 +6,9 @@ export default {
 		const track_id = event.context.params?.id;
 		if (!track_id) throw createError({ status: 400 });
 
+		const path_match = event.path.match(/\/track\/[^/]+\/image\/(.+)$/);
+		const image_url = path_match ? decodeURIComponent(path_match[1]) : null;
+
 		const query = getQuery(event);
 
 		let market = "US";
@@ -23,6 +26,7 @@ export default {
 			market,
 			event.context.cloudflare?.env || process.env,
 			event.headers.get("authorization"),
+			image_url
 		);
 		if (!lyrics_buffer) {
 			setHeader(event, "Cache-Control", "no-store");
