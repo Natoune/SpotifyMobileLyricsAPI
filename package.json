@@ -28,7 +28,7 @@
     "@bufbuild/buf": "^1.50.0",
     "@bufbuild/protoc-gen-es": "^2.2.3",
     "@types/crypto-js": "^4.2.2",
-    "@types/node": "^22.13.4",
+    "@types/node": "^22.13.8",
     "typescript": "5.7.3"
   }
 }
