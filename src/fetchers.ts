@@ -264,6 +264,7 @@ export async function fetchLyrics(
 	const lyricsFetchers = [
 		() => getLyricsFromDB(track_id),
 		() => getSpotifyLyrics(track_id, market, image_url),
+		() => getSpotifyLyrics(track_id, market, image_url),
 		() => getNeteaseLyrics(track_id),
 		() => getLRCLibLyrics(track_id),
 	];
