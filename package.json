@@ -30,7 +30,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.13.4",
-    "typescript": "5.7.3"
+    "typescript": "5.8.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
