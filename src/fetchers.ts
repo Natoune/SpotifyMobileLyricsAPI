@@ -20,51 +20,56 @@ async function getLyricsFromDB(track_id: string) {
 	if (!useDatabase) return null;
 
 	try {
-		database!.get(
-			`SELECT * FROM l WHERE i = '${track_id}' LIMIT 1`,
-			(err, lyrics: any) => {
-				if (err || !lyrics) return null;
+		const lyrics = database!
+			.prepare<
+				string,
+				{ s: number; l: string; b: number; t: number; h: number }
+			>("SELECT * FROM l WHERE i = ? LIMIT 1")
+			.get(track_id);
 
-				const lyrics_obj = {
-					lyrics: {
-						syncType: lyrics.s === 1 ? 1 : undefined,
-						lines: lyrics.l.split("|").map((line: string) => {
-							const [startTimeMs, words, existsSync] = line.split(".");
-							return {
-								startTimeMs: Number.parseInt(startTimeMs),
-								words: Buffer.from(words, "base64").toString(),
-								existsSync: existsSync === "true",
-							};
-						}),
-						provider: "musixmatch",
-						providerDisplayName: "Musixmatch",
-					},
-					colors: {
-						background: lyrics.b,
-						text: lyrics.t,
-						highlightText: lyrics.h,
-					},
-				};
+		if (!lyrics) return null;
 
-				return lyrics_obj;
+		return {
+			lyrics: {
+				syncType: lyrics.s === 1 ? 1 : undefined,
+				lines: lyrics.l.split("|").map((line: string) => {
+					const [startTimeMs, words, existsSync] = line.split(".");
+					return {
+						startTimeMs: Number.parseInt(startTimeMs),
+						words: Buffer.from(words, "base64").toString(),
+						existsSync: existsSync === "true",
+					};
+				}),
+				provider: "musixmatch",
+				providerDisplayName: "Musixmatch",
 			},
-		);
+			colors: {
+				background: lyrics.b,
+				text: lyrics.t,
+				highlightText: lyrics.h,
+			},
+		};
 	} catch {
 		return null;
 	}
 }
 
-async function getSpotifyLyrics(id: string, market: string) {
-	const lyrics = await fetch(
-		`https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`,
-		{
-			headers: {
-				"app-platform": "WebPlayer",
-				"User-Agent": USER_AGENT,
-				Authorization: `Bearer ${await getSpotifyToken(env)}`,
-			},
+async function getSpotifyLyrics(
+	id: string,
+	market: string,
+	image_url: string | null = null,
+) {
+	const url = image_url
+		? `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}/image/${encodeURIComponent(image_url)}?format=json&vocalRemoval=false&market=${market}`
+		: `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`;
+
+	const lyrics = await fetch(url, {
+		headers: {
+			"app-platform": "WebPlayer",
+			"User-Agent": USER_AGENT,
+			Authorization: `Bearer ${await getSpotifyToken(env)}`,
 		},
-	)
+	})
 		.then((res) => res.json())
 		.then((data) => ({
 			...data,
@@ -83,9 +88,11 @@ async function getSpotifyLyrics(id: string, market: string) {
 		return null;
 
 	if (useDatabase) {
-		database!.run(
-			"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
-			[
+		database!
+			.prepare<[string, number, string, number, number, number], void>(
+				"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
+			)
+			.run(
 				id,
 				lyrics.lyrics.syncType ? 1 : 0,
 				lyrics.lyrics.lines
@@ -99,9 +106,7 @@ async function getSpotifyLyrics(id: string, market: string) {
 				lyrics.colors.background,
 				lyrics.colors.text,
 				lyrics.colors.highlightText,
-			],
-			(err) => {},
-		);
+			);
 	}
 
 	return lyrics;
@@ -246,6 +251,7 @@ export async function fetchLyrics(
 	market: string,
 	setEnv: Record<string, any>,
 	authorization: string | null,
+	image_url: string | null = null,
 ) {
 	env = setEnv;
 
@@ -257,7 +263,7 @@ export async function fetchLyrics(
 
 	const lyricsFetchers = [
 		() => getLyricsFromDB(track_id),
-		() => getSpotifyLyrics(track_id, market),
+		() => getSpotifyLyrics(track_id, market, image_url),
 		() => getNeteaseLyrics(track_id),
 		() => getLRCLibLyrics(track_id),
 	];

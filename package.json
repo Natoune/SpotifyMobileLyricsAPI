@@ -16,19 +16,27 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.3",
     "@vercel/node": "^5.1.7",
+    "better-sqlite3": "^11.9.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.7",
     "h3": "^1.15.0",
     "h3-compression": "^0.3.2",
     "languagedetect": "^2.0.0",
-    "redis": "^4.7.0",
-    "sqlite3": "^5.1.7"
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.50.0",
     "@bufbuild/protoc-gen-es": "^2.2.3",
+    "@types/better-sqlite3": "^7.6.12",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.13.4",
     "typescript": "5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@bufbuild/buf",
+      "better-sqlite3",
+      "esbuild"
+    ]
   }
 }

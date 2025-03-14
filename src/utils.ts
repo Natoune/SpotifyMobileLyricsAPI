@@ -1,13 +1,15 @@
+import Database from "better-sqlite3";
 import CryptoJS from "crypto-js";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import querystring from "node:querystring";
 import type { SetOptions } from "redis";
 import { createClient } from "redis";
-import { Database } from "sqlite3";
 
 export const useDatabase = process.env.DATABASE === "true";
-export const database = useDatabase ? new Database(join(__dirname, "..", "lyrics.db")) : undefined;
+export const database = useDatabase
+	? new Database(join(__dirname, "..", "lyrics.db"))
+	: undefined;
 
 let redisClient: ReturnType<typeof createClient>;
 
@@ -27,11 +29,16 @@ export async function setSpotifyToken(token: any) {
 export async function initDatabase() {
 	if (!useDatabase) return;
 
-	database!.serialize(() => {
-		database!.run(
-			"CREATE TABLE IF NOT EXISTS l (i TEXT PRIMARY KEY, s INTEGER, l TEXT, b INTEGER, t INTEGER, h INTEGER)",
-		);
-	});
+	database!.exec(`
+		CREATE TABLE IF NOT EXISTS l (
+			i TEXT PRIMARY KEY,
+			s INTEGER,
+			l TEXT,
+			b INTEGER,
+			t INTEGER,
+			h INTEGER
+		)
+	`);
 }
 
 export async function redisGet(env: Record<string, any>, key: string) {
