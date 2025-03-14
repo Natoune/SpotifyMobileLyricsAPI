@@ -74,4 +74,5 @@ app.use(router);
 router.get("/**", proxy.get);
 router.post("/**", proxy.post);
 
+router.get("/color-lyrics/v2/track/:id", lyrics.get);
 router.get("/color-lyrics/v2/track/:id/**", lyrics.get);
