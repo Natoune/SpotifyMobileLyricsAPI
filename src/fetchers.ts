@@ -88,25 +88,27 @@ async function getSpotifyLyrics(
 		return null;
 
 	if (useDatabase) {
-		database!
-			.prepare<[string, number, string, number, number, number], void>(
-				"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
-			)
-			.run(
-				id,
-				lyrics.lyrics.syncType ? 1 : 0,
-				lyrics.lyrics.lines
-					.map(
-						(line) =>
-							`${line.startTimeMs}.${Buffer.from(line.words).toString(
-								"base64",
-							)}.${line.endTimeMs || 0}`,
-					)
-					.join("|"),
-				lyrics.colors.background,
-				lyrics.colors.text,
-				lyrics.colors.highlightText,
-			);
+		if (!database!.prepare("SELECT * FROM l WHERE i = ?").get(id)) {
+			database!
+				.prepare<[string, number, string, number, number, number], void>(
+					"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
+				)
+				.run(
+					id,
+					lyrics.lyrics.syncType ? 1 : 0,
+					lyrics.lyrics.lines
+						.map(
+							(line) =>
+								`${line.startTimeMs}.${Buffer.from(line.words).toString(
+									"base64",
+								)}.${line.endTimeMs || 0}`,
+						)
+						.join("|"),
+					lyrics.colors.background,
+					lyrics.colors.text,
+					lyrics.colors.highlightText,
+				);
+		}
 	}
 
 	return lyrics;
