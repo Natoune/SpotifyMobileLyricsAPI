@@ -1,0 +1,5 @@
+{
+	"name": "spotify-mobile-lyrics-api",
+	"compatibility_date": "2025-07-07",
+	"main": "adapter/cloudflare.ts"
+}
