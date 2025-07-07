@@ -118,7 +118,7 @@ docker run -d -p 443:3000 -e SP_DC=spotify-cookie  -v /path/to/certs:/usr/src/ap
 
 You can deploy the API to Vercel with the following steps:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI&stores=[{"type"%3A"integration"%2C"integrationSlug"%3A"neon"%2C"productSlug"%3A"neon"}])
 
 1. Click the "Deploy with Vercel" button.
 2. Set the `SP_DC` environment variable to the `sp_dc` cookie value from the Spotify Web Player (see [Finding sp_dc](https://github.com/akashrchandran/syrics/wiki/Finding-sp_dc)).
