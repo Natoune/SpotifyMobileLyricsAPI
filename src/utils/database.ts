@@ -91,12 +91,14 @@ export class Database {
 	}
 
 	async close() {
-		if (this.dbType === "sqlite") {
-			(this.db as Sqlite3.Database).close();
-		} else if (this.dbType === "mysql") {
-			await (this.db as Connection).end();
-		} else if (this.dbType === "postgres") {
-			await (this.db as Pool).end();
-		}
+		try {
+			if (this.dbType === "sqlite") {
+				(this.db as Sqlite3.Database).close();
+			} else if (this.dbType === "mysql") {
+				await (this.db as Connection).end();
+			} else if (this.dbType === "postgres") {
+				await (this.db as Pool).end();
+			}
+		} catch {}
 	}
 }
