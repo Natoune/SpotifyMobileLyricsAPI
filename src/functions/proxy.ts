@@ -23,7 +23,9 @@ const proxyRequest = defineEventHandler(async (event) => {
 	if (!event.headers.has("authorization")) {
 		event.headers.set(
 			"authorization",
-			`Bearer ${await getSpotifyToken(event.context.cloudflare?.env || process.env)}`,
+			`Bearer ${await getSpotifyToken(
+				event.context.cloudflare?.env || process.env
+			)}`
 		);
 	}
 
@@ -44,7 +46,7 @@ const proxyRequest = defineEventHandler(async (event) => {
 	try {
 		const res = await fetch(
 			`https://spclient.wg.spotify.com${event.path}`,
-			options,
+			options
 		);
 		const body = Buffer.from(await res.arrayBuffer());
 		const responseHeaders = new Headers();
@@ -69,7 +71,7 @@ const proxyRequest = defineEventHandler(async (event) => {
 			new Response(body.length ? body : null, {
 				status: res.status,
 				headers: responseHeaders,
-			}),
+			})
 		);
 	} catch {
 		throw createError({ status: 500 });

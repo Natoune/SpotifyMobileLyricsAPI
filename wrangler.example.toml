@@ -5,7 +5,3 @@ compatibility_date = "2024-10-12"
 
 [build]
 command = "npm run build"
-
-[[kv_namespaces]]
-binding = "sp_redis"
-id = "YOUR_KV_ID"

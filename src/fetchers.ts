@@ -3,36 +3,34 @@ import LanguageDetect from "languagedetect";
 import { RootSchema } from "./gen/lyrics_pb";
 import {
 	USER_AGENT,
-	database,
 	fetchNetease,
 	getSpotifyToken,
 	getTrackInfo,
-	setSpotifyToken,
-	useDatabase,
 } from "./utils";
+import { Database } from "./utils/database";
 
 const langDetector = new LanguageDetect();
 langDetector.setLanguageType("iso2");
 
-let env: Record<string, any>;
+let env: Record<string, string>;
+let database: Database;
 
 async function getLyricsFromDB(track_id: string) {
-	if (!useDatabase) return null;
-
 	try {
-		const lyrics = database!
-			.prepare<
-				string,
-				{ s: number; l: string; b: number; t: number; h: number }
-			>("SELECT * FROM l WHERE i = ? LIMIT 1")
-			.get(track_id);
-
+		const lyrics = await database.query<{
+			id: string;
+			syncType: number;
+			lines: string;
+			bgColor: number;
+			textColor: number;
+			highlightColor: number;
+		}>(`SELECT * FROM lyrics WHERE id = '${track_id}' LIMIT 1`);
 		if (!lyrics) return null;
 
 		return {
 			lyrics: {
-				syncType: lyrics.s === 1 ? 1 : undefined,
-				lines: lyrics.l.split("|").map((line: string) => {
+				syncType: lyrics.syncType === 1 ? 1 : undefined,
+				lines: lyrics.lines.split("|").map((line: string) => {
 					const [startTimeMs, words, existsSync] = line.split(".");
 					return {
 						startTimeMs: Number.parseInt(startTimeMs),
@@ -44,9 +42,9 @@ async function getLyricsFromDB(track_id: string) {
 				providerDisplayName: "Musixmatch",
 			},
 			colors: {
-				background: lyrics.b,
-				text: lyrics.t,
-				highlightText: lyrics.h,
+				background: lyrics.bgColor,
+				text: lyrics.textColor,
+				highlightText: lyrics.highlightColor,
 			},
 		};
 	} catch {
@@ -54,14 +52,12 @@ async function getLyricsFromDB(track_id: string) {
 	}
 }
 
-async function getSpotifyLyrics(
-	id: string,
-	market: string,
-	image_url: string | null = null,
-) {
+async function getSpotifyLyrics(id: string, image_url: string | null = null) {
 	const url = image_url
-		? `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}/image/${encodeURIComponent(image_url)}?format=json&vocalRemoval=false&market=${market}`
-		: `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=${market}`;
+		? `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}/image/${encodeURIComponent(
+				image_url
+		  )}?format=json&vocalRemoval=false&market=from_token`
+		: `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&vocalRemoval=false&market=from_token`;
 
 	const lyrics = await fetch(url, {
 		headers: {
@@ -75,7 +71,8 @@ async function getSpotifyLyrics(
 			...data,
 			lyrics: {
 				...data.lyrics,
-				syncType: data.lyrics.syncType === "LINE_SYNCED" ? 1 : undefined,
+				syncType:
+					data.lyrics.syncType === "LINE_SYNCED" ? 1 : undefined,
 				lines: data.lyrics.lines.map((line) => ({
 					...line,
 					startTimeMs: Number.parseInt(line.startTimeMs),
@@ -87,27 +84,29 @@ async function getSpotifyLyrics(
 	if (!lyrics || !lyrics.lyrics?.lines || !lyrics.lyrics?.lines.length)
 		return null;
 
-	if (useDatabase) {
-		if (!database!.prepare("SELECT * FROM l WHERE i = ?").get(id)) {
-			database!
-				.prepare<[string, number, string, number, number, number], void>(
-					"INSERT INTO l (i, s, l, b, t, h) VALUES (?, ?, ?, ?, ?, ?)",
-				)
-				.run(
-					id,
-					lyrics.lyrics.syncType ? 1 : 0,
-					lyrics.lyrics.lines
+	if (database.enabled) {
+		if (
+			!(await database.query(`SELECT * FROM lyrics WHERE id = '${id}'`))
+		) {
+			await database.query(
+				`INSERT INTO lyrics (id, syncType, lines, bgColor, textColor, highlightColor)
+				VALUES (
+					'${id}',
+					${lyrics.lyrics.syncType ? 1 : 0},
+					'${lyrics.lyrics.lines
 						.map(
 							(line) =>
-								`${line.startTimeMs}.${Buffer.from(line.words).toString(
-									"base64",
-								)}.${line.endTimeMs || 0}`,
+								`${line.startTimeMs}.${Buffer.from(
+									line.words
+								).toString("base64")}.${line.endTimeMs || 0}`
 						)
-						.join("|"),
-					lyrics.colors.background,
-					lyrics.colors.text,
-					lyrics.colors.highlightText,
-				);
+						.join("|")}',
+					${lyrics.colors.background},
+					${lyrics.colors.text},
+					${lyrics.colors.highlightText}
+				)`,
+				true
+			);
 		}
 	}
 
@@ -154,7 +153,7 @@ async function getNeteaseLyrics(track_id: string) {
 		return true;
 	});
 	const synced_lines = lines.filter((line) =>
-		/^\[\d{2}:\d{2}\.\d{2,3}\]/.test(line),
+		/^\[\d{2}:\d{2}\.\d{2,3}\]/.test(line)
 	);
 
 	if (!lines.length) return null;
@@ -173,13 +172,13 @@ async function getNeteaseLyrics(track_id: string) {
 						words: line.split("]").slice(1).join("").trim(),
 						syllabes: [],
 						endTimeMs: 0,
-					}))
+				  }))
 				: lines.map((line) => ({
 						startTimeMs: 0,
 						words: line.trim(),
 						syllabes: [],
 						endTimeMs: 0,
-					})),
+				  })),
 			provider: "netease",
 			providerLyricsId: `${id}`,
 			providerDisplayName: "NetEase Cloud Music",
@@ -199,7 +198,10 @@ async function getLRCLibLyrics(track_id: string) {
 	url.searchParams.append("artist_name", artist);
 	if (album) url.searchParams.append("album_name", album);
 	if (duration)
-		url.searchParams.append("duration", Math.round(duration / 1000).toString());
+		url.searchParams.append(
+			"duration",
+			Math.round(duration / 1000).toString()
+		);
 
 	const lyrics = await fetch(url.toString(), {
 		headers: {
@@ -231,13 +233,13 @@ async function getLRCLibLyrics(track_id: string) {
 						words: line.split("]").slice(1).join("").trim(),
 						syllabes: [],
 						endTimeMs: 0,
-					}))
+				  }))
 				: lines.map((line) => ({
 						startTimeMs: 0,
 						words: line.trim(),
 						syllabes: [],
 						endTimeMs: 0,
-					})),
+				  })),
 			provider: "lrclib",
 			providerLyricsId: `${lyrics.id}`,
 			providerDisplayName: "LRCLIB",
@@ -250,23 +252,16 @@ async function getLRCLibLyrics(track_id: string) {
 
 export async function fetchLyrics(
 	track_id: string,
-	market: string,
-	setEnv: Record<string, any>,
-	authorization: string | null,
-	image_url: string | null = null,
+	setEnv: Record<string, string>,
+	image_url: string | null = null
 ) {
 	env = setEnv;
-
-	if (authorization && authorization.split(" ").length > 1)
-		setSpotifyToken({
-			accessToken: authorization.split(" ")[1],
-			accessTokenExpirationTimestampMs: Date.now() + 3600000,
-		});
+	database = new Database(env);
+	await database.initialize();
 
 	const lyricsFetchers = [
-		() => getLyricsFromDB(track_id),
-		() => getSpotifyLyrics(track_id, market, image_url),
-		() => getSpotifyLyrics(track_id, market, image_url),
+		database.enabled ? () => getLyricsFromDB(track_id) : () => null,
+		() => getSpotifyLyrics(track_id, image_url),
 		() => getNeteaseLyrics(track_id),
 		() => getLRCLibLyrics(track_id),
 	];
@@ -276,7 +271,7 @@ export async function fetchLyrics(
 		text: -16777216,
 		highlightText: -1,
 	};
-	let unsyncedLyrics: Uint8Array | null = null;
+	let lyrics: Uint8Array | null = null;
 
 	for (const fetcher of lyricsFetchers) {
 		const lyrics_obj = await fetcher();
@@ -286,14 +281,12 @@ export async function fetchLyrics(
 			else lyrics_obj.colors = colors;
 
 			const proto = protobuf.create(RootSchema, lyrics_obj);
+			lyrics = protobuf.toBinary(RootSchema, proto);
 
-			if (lyrics_obj.syncType === 1)
-				return protobuf.toBinary(RootSchema, proto);
-
-			if (!unsyncedLyrics)
-				unsyncedLyrics = protobuf.toBinary(RootSchema, proto);
+			break;
 		}
 	}
 
-	return unsyncedLyrics;
+	await database.close();
+	return lyrics;
 }

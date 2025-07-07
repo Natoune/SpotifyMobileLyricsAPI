@@ -1,6 +1,6 @@
 {
   "name": "spotify-mobile-lyrics-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "This API overrides the Spotify API endpoint used in the Spotify mobile app to fetch lyrics for the currently playing song.",
   "author": "Natan Chiodi <contact@natanchiodi.fr>",
   "license": "MIT",
@@ -16,13 +16,14 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.3",
     "@vercel/node": "^5.1.7",
-    "better-sqlite3": "^11.9.0",
+    "better-sqlite3": "^12.2.0",
     "crypto-js": "^4.2.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "17.0.1",
     "h3": "^1.15.0",
     "h3-compression": "^0.3.2",
     "languagedetect": "^2.0.0",
-    "redis": "^4.7.0"
+    "mysql2": "^3.14.1",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.50.0",
@@ -30,7 +31,11 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.13.4",
+    "@types/pg": "^8.15.4",
     "typescript": "5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

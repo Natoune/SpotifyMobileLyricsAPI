@@ -6,8 +6,9 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
 
 - [Spotify Mobile Lyrics API](#spotify-mobile-lyrics-api)
   - [How it works](#how-it-works)
+  - [ReVanced](#revanced)
   - [xManager](#xmanager)
-    - [Patch xManager](#patch-xmanager)
+    - [Patch xManager](#patch-xmanager-not-maintained)
       - [Download the pre-patched releases](#download-the-pre-patched-releases)
       - [Manually patch xManager release](#manually-patch-xmanager-release)
   - [Public servers list](#public-servers-list)
@@ -33,13 +34,19 @@ You can use this API in xManager to fetch lyrics without having a Spotify Premiu
 
 ![How it works](.meta/how-it-works.png)
 
+## ReVanced
+
+You can use this API with [ReVanced](https://revanced.app/) to fetch lyrics without having a Spotify Premium account.
+
+Use the patch "[Change lyrics provider](https://revanced.app/patches?s=Change+lyrics+provider)" in the ReVanced Manager and set the host to `lyrics.natanchiodi.fr` or to your own server.
+
 ## xManager
 
-### Patch xManager
+### Patch xManager (Not maintained)
 
 > [!NOTE]  
-> The latest versions of xManager already have the lyrics patch applied.  
-> If you have an older version or want to use a different server, you can patch it manually.
+> I stopped working on the xManager patch script for lyrics since ReVanced included the "Change lyrics provider" patch.  
+> The script I make available in this repo will not work on newer versions of Spotify.
 
 #### Download the pre-patched releases
 
@@ -82,6 +89,8 @@ The container will expose the API on port 3000. You can change the port by chang
 Environment variables:
 
 - `SP_DC` the `sp_dc` cookie value from the Spotify Web Player (see [Finding sp_dc](https://github.com/akashrchandran/syrics/wiki/Finding-sp_dc)).
+- `DATABASE_TYPE` (optional) the type of database to use. Supported values: `sqlite`, `mysql`, `postgres`.
+- `DATABASE_URL` (optional) the database connection URI. Required if `DATABASE_TYPE` is set to `mysql` or `postgres`.
 - `SSL_CERT` (optional) the SSL certificate string.
 - `SSL_KEY` (optional) the SSL key string.
 
@@ -109,11 +118,11 @@ docker run -d -p 443:3000 -e SP_DC=spotify-cookie  -v /path/to/certs:/usr/src/ap
 
 You can deploy the API to Vercel with the following steps:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22redis%22%2C%22productSlug%22%3A%22redis%22%7D%5D)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FNatoune%2FSpotifyMobileLyricsAPI&env=SP_DC&envDescription=SP_DC%20cookie%20to%20authenticate%20against%20Spotify%20in%20order%20to%20have%20access%20to%20the%20required%20services.&envLink=https%3A%2F%2Fgithub.com%2Fakashrchandran%2Fsyrics%2Fwiki%2FFinding-sp_dc&project-name=spotify-mobile-lyrics-api&repository-name=SpotifyMobileLyricsAPI)
 
 1. Click the "Deploy with Vercel" button.
 2. Set the `SP_DC` environment variable to the `sp_dc` cookie value from the Spotify Web Player (see [Finding sp_dc](https://github.com/akashrchandran/syrics/wiki/Finding-sp_dc)).
-3. Set up the redis integration.
+3. Set up the database integration.
 4. Deploy the API.
 
 ### Cloudflare Workers
@@ -140,21 +149,14 @@ npm install
 cp wrangler.example.toml wrangler.toml
 ```
 
-5. Create a new KV namespace and add it to the `wrangler.toml` file:
+5. (Optional) Set up the database integration:
 
 ```bash
-npx wrangler kv namespace create sp_redis
+npx wrangler secret put DATABASE_TYPE
+npx wrangler secret put DATABASE_URL
 ```
 
-wrangler.toml:
-
-```toml
-...
-
-[[kv_namespaces]]
-binding = "sp_redis"
-id = "YOUR_KV_ID"
-```
+(Set the value of `DATABASE_TYPE` to `postgres` or `mysql`)
 
 6. Add an `SP_DC` secret
 
@@ -204,6 +206,16 @@ PORT=443
 
 # Find a detailed guide on how to get your Spotify SP_DC cookie here: https://github.com/akashrchandran/syrics/wiki/Finding-sp_dc
 SP_DC=your-spotify-cookie
+
+# Enable this for debugging purposes.
+LOG_REQUESTS=false
+
+# The database is optional.
+# Use SQLite if you can use the filesystem, or MySQL/Postgres if you have a remote database.
+DATABASE_TYPE=sqlite
+
+# DATABASE_TYPE=mysql or postgres
+# DATABASE_URL=your-database-uri
 ```
 
 4. Set up SSL **[REQUIRED]**
