@@ -15,7 +15,7 @@ export const USER_AGENT =
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3";
 
 export async function storeSpotifyToken(
-	env: Record<string, string>,
+	database: Database,
 	token: {
 		accessToken: string;
 		accessTokenExpirationTimestampMs: number;
@@ -33,9 +33,6 @@ export async function storeSpotifyToken(
 	} catch {}
 
 	// Store token in database
-	const database = new Database(env);
-	await database.initialize();
-
 	if (database.enabled) {
 		try {
 			await database.query(
@@ -53,7 +50,8 @@ export async function storeSpotifyToken(
 }
 
 export async function getSpotifyToken(
-	env: Record<string, string>
+	env: Record<string, string>,
+	database: Database
 ): Promise<string | null> {
 	// Get token from memory
 	if (
@@ -84,8 +82,6 @@ export async function getSpotifyToken(
 	} catch {}
 
 	// Get token from database
-	const database = new Database(env);
-	await database.initialize();
 	if (database.enabled) {
 		try {
 			const token = await database.query<{
@@ -100,10 +96,7 @@ export async function getSpotifyToken(
 				)
 					return spotifyToken.accessToken;
 			}
-		} catch {
-		} finally {
-			await database.close();
-		}
+		} catch {}
 	}
 
 	// Get token from API
@@ -139,7 +132,7 @@ export async function getSpotifyToken(
 
 	if (!token?.accessToken) return null;
 
-	await storeSpotifyToken(env, {
+	await storeSpotifyToken(database, {
 		accessToken: token.accessToken,
 		accessTokenExpirationTimestampMs:
 			token.accessTokenExpirationTimestampMs,
@@ -149,13 +142,14 @@ export async function getSpotifyToken(
 
 export async function getTrackInfo(
 	env: Record<string, string>,
+	database: Database,
 	track_id: string
 ) {
 	const trackInfo = await fetch(
 		`https://api.spotify.com/v1/tracks/${track_id}`,
 		{
 			headers: {
-				Authorization: `Bearer ${await getSpotifyToken(env)}`,
+				Authorization: `Bearer ${await getSpotifyToken(env, database)}`,
 			},
 		}
 	)

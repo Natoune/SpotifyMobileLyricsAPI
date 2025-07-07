@@ -1,5 +1,6 @@
 import { createError, defineEventHandler, readRawBody } from "h3";
 import { getSpotifyToken } from "../utils";
+import { Database } from "../utils/database";
 
 const ignorePathPrefixes = ["/quicksilver", "/ondemand-selector"];
 
@@ -21,12 +22,20 @@ const proxyRequest = defineEventHandler(async (event) => {
 	}
 
 	if (!event.headers.has("authorization")) {
+		const database = new Database(
+			event.context.cloudflare?.env || process.env
+		);
+		await database.initialize();
+
 		event.headers.set(
 			"authorization",
 			`Bearer ${await getSpotifyToken(
-				event.context.cloudflare?.env || process.env
+				event.context.cloudflare?.env || process.env,
+				database
 			)}`
 		);
+
+		await database.close();
 	}
 
 	let buffer: Buffer | undefined;

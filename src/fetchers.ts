@@ -63,7 +63,7 @@ async function getSpotifyLyrics(id: string, image_url: string | null = null) {
 		headers: {
 			"app-platform": "WebPlayer",
 			"User-Agent": USER_AGENT,
-			Authorization: `Bearer ${await getSpotifyToken(env)}`,
+			Authorization: `Bearer ${await getSpotifyToken(env, database)}`,
 		},
 	})
 		.then((res) => res.json())
@@ -114,7 +114,7 @@ async function getSpotifyLyrics(id: string, image_url: string | null = null) {
 }
 
 async function getNeteaseLyrics(track_id: string) {
-	const { name, artist } = await getTrackInfo(env, track_id);
+	const { name, artist } = await getTrackInfo(env, database, track_id);
 	if (!name || !artist) return null;
 
 	const id = await fetchNetease({
@@ -190,7 +190,11 @@ async function getNeteaseLyrics(track_id: string) {
 }
 
 async function getLRCLibLyrics(track_id: string) {
-	const { name, artist, album, duration } = await getTrackInfo(env, track_id);
+	const { name, artist, album, duration } = await getTrackInfo(
+		env,
+		database,
+		track_id
+	);
 	if (!name || !artist) return null;
 
 	const url = new URL("https://lrclib.net/api/get");
