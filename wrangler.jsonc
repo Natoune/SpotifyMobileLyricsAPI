@@ -1,5 +1,11 @@
 {
 	"name": "spotify-mobile-lyrics-api",
+	"main": "adapter/cloudflare.ts",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"compatibility_date": "2025-07-07",
-	"main": "adapter/cloudflare.ts"
+	"build": {
+		"command": "npm run build"
+	}
 }
