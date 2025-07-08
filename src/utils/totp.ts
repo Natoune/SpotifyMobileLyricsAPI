@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-// thanks to https://github.com/akashrchandran/syrics/blob/main/syrics/totp.py
+// thanks to https://github.com/glomatico/votify/blob/main/votify/totp.py
 export class TOTP {
 	secret: Buffer;
 	version: number;
@@ -8,14 +8,17 @@ export class TOTP {
 	digits: number;
 
 	constructor() {
-		this.secret = Buffer.from("449443649084886328893534571041315", "utf8");
-		this.version = 8;
+		this.secret = Buffer.from(
+			"10239356982684469120121471223494829410773366870",
+			"utf8"
+		);
+		this.version = 11;
 		this.period = 30;
 		this.digits = 6;
 	}
 
 	generate(timestamp: number): string {
-		const counter = Math.floor(timestamp / this.period);
+		const counter = Math.floor(timestamp / 1000 / this.period);
 		const counterBytes = Buffer.alloc(8);
 		counterBytes.writeBigUInt64BE(BigInt(counter));
 

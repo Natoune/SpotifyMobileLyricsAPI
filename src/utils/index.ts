@@ -112,7 +112,7 @@ export async function getSpotifyToken(
 		},
 	})
 		.then((res) => res.json())
-		.then((data) => data.serverTime)
+		.then((data) => data.serverTime * 1000)
 		.catch(() => 0);
 
 	const totp = new TOTP();
