@@ -1,6 +1,6 @@
 {
   "name": "spotify-mobile-lyrics-api",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "This API overrides the Spotify API endpoint used in the Spotify mobile app to fetch lyrics for the currently playing song.",
   "author": "Natan Chiodi <contact@natanchiodi.fr>",
   "license": "MIT",

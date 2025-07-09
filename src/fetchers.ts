@@ -31,11 +31,11 @@ async function getLyricsFromDB(track_id: string) {
 			lyrics: {
 				syncType: lyrics.syncType === 1 ? 1 : undefined,
 				lines: lyrics.lines.split("|").map((line: string) => {
-					const [startTimeMs, words, existsSync] = line.split(".");
+					const [startTimeMs, words, endTimeMs] = line.split(".");
 					return {
 						startTimeMs: Number.parseInt(startTimeMs),
 						words: Buffer.from(words, "base64").toString(),
-						existsSync: existsSync === "true",
+						endTimeMs: Number.parseInt(endTimeMs) || 0,
 					};
 				}),
 				provider: "musixmatch",
