@@ -1,5 +1,10 @@
 # Spotify Mobile Lyrics API
 
+> [!IMPORTANT]
+> ReVanced has received a **DMCA takedown**.  
+> Read the full announcement of ReVanced here: [⚖️ Spotify DMCA notice - Seeking legal help](https://revanced.app/announcements/15-spotify-dmca-notice-seeking-legal-help)  
+> Read what I have to say about this here: [- READ ME : ReVanced DMCA takedown - #97](https://github.com/Natoune/SpotifyMobileLyricsAPI/issues/97)  
+
 This API overrides the Spotify API endpoint used in the Spotify mobile app to fetch lyrics for the currently playing song.
 
 You can use this API in xManager to fetch lyrics without having a Spotify Premium account.
