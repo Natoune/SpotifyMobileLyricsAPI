@@ -26,7 +26,7 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
-    "@bufbuild/buf": "^1.50.0",
+    "@bufbuild/buf": "^1.54.0",
     "@bufbuild/protoc-gen-es": "^2.2.3",
     "@types/better-sqlite3": "^7.6.12",
     "@types/crypto-js": "^4.2.2",
